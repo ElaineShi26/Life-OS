@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'preact/hooks'
-import { state } from './store/state'
+import { useState, useEffect, useRef } from 'preact/hooks'
+import { state, sync, replaceAll } from './store/state'
 import { todayKey, weekKey, weekRange, fmtCN } from './lib/date'
-import { useRef } from 'preact/hooks'
 import { Dialog } from './ui/Dialog'
 import { exportJSON, importJSON } from './store/storage'
-import { replaceAll } from './store/state'
+import { bootstrap, signOut } from './store/sync'
+import { loginWithGitHub } from './store/cloud'
 import { Goals, GoalsActions } from './pages/Goals'
 import { Week, WeekActions } from './pages/Week'
 import { Execute } from './pages/Execute'
@@ -19,22 +19,38 @@ export const PAGES = [
   { id: 'review', n: '05', t: '复盘', sub: '把这一周变成判断：哪条假设被证据推翻了' },
 ]
 
-const VIEWS = {
-  goals: Goals,
-  week: Week,
-  execute: Execute,
-  log: Log,
-  review: Review,
-}
-
-const ACTIONS = {
-  goals: GoalsActions,
-  week: WeekActions,
-}
+const VIEWS = { goals: Goals, week: Week, execute: Execute, log: Log, review: Review }
+const ACTIONS = { goals: GoalsActions, week: WeekActions }
 
 function currentPage() {
   const h = typeof location !== 'undefined' ? location.hash.replace(/^#/, '') : ''
   return PAGES.some((p) => p.id === h) ? h : 'goals'
+}
+
+function Loading() {
+  return (
+    <div class="gate">
+      <div class="gate-mark">Life OS</div>
+      <p class="gate-hint">正在同步…</p>
+    </div>
+  )
+}
+
+function LoginGate() {
+  return (
+    <div class="gate">
+      <div class="gate-mark">Life OS</div>
+      <p class="gate-lead">
+        你的目标、任务和记录存在自己的云端数据库里。
+        <br />
+        换任何设备打开这个地址，看到的都是同一份。
+      </p>
+      <button class="btn btn-primary gate-btn" type="button" onClick={loginWithGitHub}>
+        用 GitHub 登录
+      </button>
+      <p class="gate-hint">只有你能进。别人打开这个地址，只会看到这扇门。</p>
+    </div>
+  )
 }
 
 export function App() {
@@ -42,11 +58,19 @@ export function App() {
   const fileRef = useRef(null)
 
   useEffect(() => {
+    bootstrap()
+  }, [])
+
+  useEffect(() => {
     const onHash = () => setPage(currentPage())
     window.addEventListener('hashchange', onHash)
     if (!location.hash) location.hash = '#goals'
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+
+  const sy = sync.value
+  if (sy.mode === 'loading') return <Loading />
+  if (sy.mode === 'anon') return <LoginGate />
 
   const s = state.value
   const View = VIEWS[page]
@@ -59,6 +83,13 @@ export function App() {
   const weekData = s.weeks[wk] || { priorities: [] }
   const openDecisions = s.decisions.filter((d) => d.status === 'open').length
   const activeGoals = s.goals.filter((g) => g.status === 'active').length
+
+  const syncLabel =
+    sy.mode === 'cloud'
+      ? `已同步 ${new Date(sy.lastSync || Date.now()).toTimeString().slice(0, 5)}`
+      : sy.mode === 'offline'
+        ? '离线 · 只在本地'
+        : '本地模式'
 
   return (
     <div class="shell">
@@ -91,6 +122,17 @@ export function App() {
             今日 <b>{doneToday}/{todayTasks.length}</b> · 本周重点{' '}
             <b>{weekData.priorities.filter((p) => p.done).length}/{weekData.priorities.length}</b>
           </div>
+
+          <div class="sync-line">
+            <span class={`dot ${sy.mode}`} />
+            <span>{syncLabel}</span>
+            {sy.mode === 'cloud' ? (
+              <button class="link-btn" type="button" onClick={() => signOut()}>
+                退出
+              </button>
+            ) : null}
+          </div>
+
           <div class="rail-actions">
             <button type="button" onClick={() => exportJSON(state.value)}>
               导出
@@ -123,9 +165,7 @@ export function App() {
         <header class="topbar">
           <div>
             <h1>{meta.t}</h1>
-            <p class="page-sub">
-              {page === 'execute' ? `${fmtCN()} · ${meta.sub}` : meta.sub}
-            </p>
+            <p class="page-sub">{page === 'execute' ? `${fmtCN()} · ${meta.sub}` : meta.sub}</p>
           </div>
           <div class="topbar-actions">{Actions ? <Actions /> : null}</div>
         </header>
@@ -135,12 +175,7 @@ export function App() {
 
       <nav class="tabbar">
         {PAGES.map((p) => (
-          <a
-            key={p.id}
-            class="tab"
-            href={`#${p.id}`}
-            aria-current={p.id === page ? 'page' : undefined}
-          >
+          <a key={p.id} class="tab" href={`#${p.id}`} aria-current={p.id === page ? 'page' : undefined}>
             {p.t}
           </a>
         ))}

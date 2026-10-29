@@ -1,5 +1,6 @@
 import { signal } from '@preact/signals'
 import { load, save } from './storage'
+import { pushRemote } from './cloud'
 import { todayKey } from '../lib/date'
 import {
   blankState,
@@ -13,10 +14,21 @@ import {
 
 export const state = signal(load())
 
+/** 同步状态：loading | anon | cloud | local | offline */
+export const sync = signal({ mode: 'loading', user: null, lastSync: 0, error: null })
+
 let saveTimer = null
 function scheduleSave() {
   clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => save(state.value), 250)
+  saveTimer = setTimeout(async () => {
+    // 本地始终写一份，断网也不能丢
+    save(state.value)
+    if (sync.value.mode !== 'cloud') return
+    const r = await pushRemote(state.value)
+    sync.value = r.ok
+      ? { ...sync.value, lastSync: Date.now(), error: null }
+      : { ...sync.value, error: r.reason || 'error' }
+  }, 500)
 }
 
 /** 唯一的写入口：拿到旧状态，返回新状态，自动落盘 */
