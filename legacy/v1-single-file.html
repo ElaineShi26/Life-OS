@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F3">
+<title>Life OS</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+:root{
+  --bg:#F7F6F3; --surface:#FFFFFF; --surface-2:#F1F0EC; --surface-3:#EAE8E3;
+  --ink:#17171A; --ink-2:#56564F; --ink-3:#8C8A82;
+  --line:#E5E3DD; --line-2:#D3D0C8;
+  --accent:#2E5E52; --accent-soft:#E7EFEC; --accent-ink:#FFFFFF;
+  --warn:#96680F; --warn-soft:#F6EEDB;
+  --danger:#9C3B2A; --danger-soft:#F7E9E5;
+  --r:6px; --r-sm:4px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#121312; --surface:#191A19; --surface-2:#212220; --surface-3:#2A2B28;
+    --ink:#EDEDEA; --ink-2:#A8A8A0; --ink-3:#75756D;
+    --line:#2A2B28; --line-2:#3A3B37;
+    --accent:#7FB8A6; --accent-soft:#1D2A26; --accent-ink:#0D1512;
+    --warn:#D6A44E; --warn-soft:#2A2418;
+    --danger:#D98A78; --danger-soft:#2A1E1B;
+  }
+}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:14px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  display:grid; grid-template-columns:236px minmax(0,1fr); min-height:100dvh;
+}
+h1,h2,h3,p,ul,ol,figure{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+
+/* ---------- rail ---------- */
+.rail{
+  position:sticky; top:0; height:100dvh; padding:26px 14px 18px;
+  border-right:1px solid var(--line); display:flex; flex-direction:column; gap:30px;
+}
+.brand-mark{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.brand-sub{margin-top:3px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.02em}
+.rail-nav{display:flex;flex-direction:column;gap:1px}
+.nav-item{
+  display:flex;align-items:baseline;gap:10px;padding:7px 10px;border-radius:var(--r-sm);
+  color:var(--ink-2);text-decoration:none;font-size:13.5px;transition:background .12s ease;
+}
+.nav-item:hover{background:var(--surface-2)}
+.nav-item .idx{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.nav-item[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.nav-item[aria-current="page"] .idx{color:var(--accent)}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:14px}
+.rail-stat{font-size:11.5px;color:var(--ink-3);line-height:1.9}
+.rail-stat b{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.rail-actions{display:flex;gap:6px}
+.rail-actions button{
+  flex:1;padding:6px 0;font-size:11.5px;color:var(--ink-3);
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);
+}
+.rail-actions button:hover{color:var(--ink);border-color:var(--line-2)}
+
+/* ---------- main ---------- */
+main{min-width:0;width:100%;max-width:1240px;margin:0 auto;padding:28px 40px 72px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.topbar h1{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.page-sub{margin-top:4px;font-size:12.5px;color:var(--ink-3)}
+.topbar-actions{display:flex;gap:8px;flex-shrink:0}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r-sm);
+  border:1px solid var(--line-2);background:var(--surface);font-size:12.5px;color:var(--ink-2);
+  transition:background .12s ease,border-color .12s ease,color .12s ease;white-space:nowrap;
+}
+.btn:hover{border-color:var(--ink-3);color:var(--ink)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.btn-primary:hover{opacity:.9;color:var(--accent-ink)}
+.btn-ghost{border-color:transparent;background:transparent;color:var(--ink-3);padding:4px 6px}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+
+/* ---------- shared ---------- */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.section-head h2{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.empty{
+  border:1px dashed var(--line-2);border-radius:var(--r);padding:44px 24px;text-align:center;color:var(--ink-3);
+}
+.empty p{font-size:13px;max-width:38ch;margin:0 auto 14px}
+.empty-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.count{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.chip{
+  display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;
+  background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line);
+}
+.chip.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+
+/* ---------- decisions ---------- */
+.kanban{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+.col-h{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.col-h span:first-child{font-size:12px;font-weight:500;color:var(--ink-2)}
+.col-empty{font-size:12px;color:var(--ink-3);padding:14px 0;font-family:var(--mono)}
+.dcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:13px 14px;margin-bottom:10px;
+}
+.dcard-title{font-size:13.5px;font-weight:500;line-height:1.45;text-wrap:pretty}
+.dcard-ctx{margin-top:6px;font-size:12.5px;color:var(--ink-2);line-height:1.55;text-wrap:pretty}
+.dcard-opts{margin:9px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.dcard-opts li{font-size:12px;color:var(--ink-2);padding-left:14px;position:relative}
+.dcard-opts li::before{content:"○";position:absolute;left:0;color:var(--ink-3);font-size:9px;top:2px}
+.dcard-opts li[data-picked]::before{content:"●";color:var(--accent)}
+.dcard-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.dcard-meta .due{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.dcard-meta .due.late{color:var(--danger)}
+.dcard-actions{margin-left:auto;display:flex;gap:2px}
+.dcard-outcome{margin-top:9px;padding:8px 10px;border-radius:var(--r-sm);background:var(--surface-2);font-size:12px;color:var(--ink-2)}
+.dcard-outcome b{font-weight:500;color:var(--ink)}
+
+/* ---------- monitor ---------- */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:14px}
+.mcard{max-width:460px}
+.mcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px 13px;display:flex;flex-direction:column}
+.mcard-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mcard-name{font-size:12.5px;color:var(--ink-2)}
+.mcard-val{display:flex;align-items:baseline;gap:4px;margin-top:8px}
+.mcard-val .n{font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.mcard-val .u{font-size:12px;color:var(--ink-3)}
+.mcard-target{font-size:11.5px;color:var(--ink-3);margin-top:3px;font-variant-numeric:tabular-nums}
+.bar{height:3px;background:var(--surface-3);border-radius:2px;margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px;background:var(--accent);transition:width .3s ease}
+.bar i.warn{background:var(--warn)}
+.bar i.danger{background:var(--danger)}
+.mcard-foot{display:flex;align-items:center;gap:8px;margin-top:9px}
+.spark{color:var(--ink-3);height:26px;flex:1 1 60px;min-width:50px;max-width:130px;overflow:visible}
+.mcard-foot .spacer{margin-left:auto}
+.mcard-note{font-size:11px;color:var(--ink-3);margin-top:8px;text-wrap:pretty}
+
+/* ---------- week ---------- */
+.prio-list{display:flex;flex-direction:column;gap:1px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.prio{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.prio:last-child{border-bottom:0}
+.prio .num{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:16px;flex-shrink:0}
+.prio .txt{flex:1;font-size:13.5px;min-width:0;word-break:break-word}
+.prio.done .txt{color:var(--ink-3);text-decoration:line-through}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.day{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:9px 9px 10px;min-height:132px;display:flex;flex-direction:column}
+.day.is-today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day-h{display:flex;align-items:baseline;justify-content:space-between;gap:4px;padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:7px}
+.day-h .wd{font-size:11px;color:var(--ink-3)}
+.day-h .dd{font-family:var(--mono);font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.day.is-today .day-h .wd,.day.is-today .day-h .dd{color:var(--accent);font-weight:500}
+.day-tasks{display:flex;flex-direction:column;gap:4px;flex:1}
+.tiny-task{display:flex;gap:5px;align-items:flex-start;font-size:11.5px;line-height:1.4;cursor:pointer;color:var(--ink-2);text-wrap:pretty}
+.tiny-task.done{color:var(--ink-3);text-decoration:line-through}
+.tiny-task input{margin:2px 0 0;width:11px;height:11px;accent-color:var(--accent);flex-shrink:0}
+.day-add{margin-top:auto;padding-top:6px;font-size:11px;color:var(--ink-3);text-align:left}
+.day-add:hover{color:var(--accent)}
+
+/* ---------- execute ---------- */
+.exec-head{display:flex;align-items:center;gap:18px;padding:16px 0 20px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.exec-num{display:flex;align-items:baseline;gap:3px}
+.exec-num .a{font-size:34px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.exec-num .b{font-size:15px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.exec-bar{flex:1;min-width:60px}
+.exec-bar .bar{height:4px;margin-top:0}
+.exec-pct{font-family:var(--mono);font-size:12px;color:var(--ink-3);min-width:38px;text-align:right}
+.focus-strip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:16px}
+.fs-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);flex-shrink:0}
+.fs-items{display:flex;gap:16px;flex-wrap:wrap;min-width:0}
+.fs-item{font-size:12.5px;color:var(--ink-2);text-wrap:pretty}
+.fs-item.done{color:var(--ink-3);text-decoration:line-through}
+.fs-link{font-size:11.5px;color:var(--accent);text-decoration:none;flex-shrink:0}
+.fs-link:hover{text-decoration:underline}
+.carry{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px dashed var(--line-2);border-radius:var(--r);margin-bottom:14px;font-size:12.5px;color:var(--ink-2);flex-wrap:wrap}
+.carry .lbl{font-family:var(--mono);font-size:10.5px;color:var(--warn);letter-spacing:.08em;flex-shrink:0}
+.carry b{font-weight:500;color:var(--ink)}
+.carry .btn{margin-left:auto}
+.task-list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.task{display:flex;align-items:flex-start;gap:11px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.task:last-child{border-bottom:0}
+.task input[type=checkbox]{margin:3px 0 0;width:15px;height:15px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
+.task .t{flex:1;font-size:13.5px;min-width:0;word-break:break-word}
+.task.done .t{color:var(--ink-3);text-decoration:line-through}
+.task .src{font-size:10.5px;color:var(--ink-3);font-family:var(--mono);flex-shrink:0}
+.inline-add{display:flex;gap:8px;margin-top:12px}
+.inline-add input{
+  flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--surface);font-size:13px;
+}
+.inline-add input::placeholder{color:var(--ink-3)}
+.inline-add input:focus{border-color:var(--accent);outline:none}
+
+/* ---------- log ---------- */
+.log-form{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:24px}
+.log-form textarea{
+  width:100%;min-height:64px;resize:vertical;border:0;background:transparent;
+  font-size:13.5px;line-height:1.6;padding:2px 4px;
+}
+.log-form textarea:focus{outline:none}
+.log-form textarea::placeholder{color:var(--ink-3)}
+.log-form-foot{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:9px;border-top:1px solid var(--line)}
+.log-form-foot input{
+  flex:1;border:0;background:transparent;font-size:12px;padding:2px 4px;color:var(--ink-2);
+}
+.log-form-foot input:focus{outline:none}
+.log-form-foot input::placeholder{color:var(--ink-3)}
+.timeline{display:flex;flex-direction:column}
+.log-day{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.log-day:last-child{border-bottom:0}
+.log-date{width:74px;flex-shrink:0;font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:2px;font-variant-numeric:tabular-nums}
+.log-date .wd2{display:block;font-family:var(--sans);font-size:10.5px;margin-top:1px}
+.log-items{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.log-item{display:flex;gap:9px;align-items:flex-start}
+.log-item .dot{width:4px;height:4px;border-radius:50%;background:var(--line-2);margin-top:9px;flex-shrink:0}
+.log-item .body{flex:1;font-size:13px;line-height:1.65;text-wrap:pretty;min-width:0;word-break:break-word;max-width:68ch}
+.log-item .tag{font-size:10.5px;color:var(--accent);font-family:var(--mono);flex-shrink:0;padding-top:2px}
+
+/* ---------- review ---------- */
+.rev-nav{display:flex;align-items:center;gap:9px;padding-bottom:15px;margin-bottom:22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.rev-nav .step{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink-2);font-size:13px;line-height:1}
+.rev-nav .step:hover{border-color:var(--ink-3);color:var(--ink)}
+.rev-nav .step[disabled]{opacity:.3;cursor:not-allowed;border-color:var(--line)}
+.rev-nav .wk{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.rev-nav .rng{font-size:12px;color:var(--ink-3)}
+.rev-nav .now{margin-left:auto;font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.rev-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:26px}
+.rev-stat{background:var(--surface);padding:13px 15px 14px}
+.rev-stat .n{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.rev-stat .n small{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:0;margin-left:1px}
+.rev-stat .k{margin-top:5px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.rev-block{margin-bottom:26px}
+.rev-block h2{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.rev-table{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.rev-mrow{display:grid;grid-template-columns:minmax(0,1fr) auto 68px;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.rev-mrow:last-child{border-bottom:0}
+.rev-mname{font-size:13px;min-width:0;word-break:break-word}
+.rev-mvals{font-family:var(--mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rev-delta{justify-self:end;font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rev-delta.better{color:var(--accent)}
+.rev-delta.worse{color:var(--danger)}
+.rev-line{display:flex;gap:9px;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-2);line-height:1.55}
+.rev-line:last-child{border-bottom:0}
+.rev-line .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);flex-shrink:0;padding-top:3px;width:44px;font-variant-numeric:tabular-nums}
+.rev-line .t{min-width:0;text-wrap:pretty;word-break:break-word}
+.rev-line.muted .t{color:var(--ink-3)}
+.rev-dec{display:flex;flex-wrap:wrap;gap:6px 10px;padding:12px 14px;font-size:12.5px;color:var(--ink-2);border-bottom:1px solid var(--line)}
+.rev-dec:last-child{border-bottom:0}
+.rev-dec b{font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.rev-dec .sep{color:var(--line-2)}
+.rev-qs{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.rev-q{background:var(--surface);padding:13px 15px 12px}
+.rev-q label{display:block;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.rev-q textarea{width:100%;min-height:44px;resize:vertical;border:0;background:transparent;font-size:13.5px;line-height:1.6;font-family:inherit;color:inherit;padding:0}
+.rev-q textarea:focus{outline:none}
+.rev-q textarea::placeholder{color:var(--ink-3)}
+.rev-foot{display:flex;align-items:center;gap:12px;margin-top:12px}
+.rev-foot .note{font-size:11.5px;color:var(--ink-3)}
+.rev-foot .btn{margin-left:auto}
+
+/* ---------- dialog ---------- */
+dialog{
+  border:1px solid var(--line-2);border-radius:10px;padding:0;background:var(--surface);
+  color:var(--ink);width:min(480px,calc(100vw - 32px));box-shadow:0 16px 48px rgba(0,0,0,.16);
+}
+dialog::backdrop{background:rgba(20,20,18,.34);backdrop-filter:blur(2px)}
+.dlg-inner{padding:22px 24px 18px}
+.dlg-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.dlg-h h3{font-size:15px;font-weight:600}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.field label{font-size:11.5px;color:var(--ink-3);letter-spacing:.02em}
+.field input,.field textarea,.field select{
+  width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-sm);
+  background:var(--bg);font-size:13.5px;
+}
+.field textarea{min-height:64px;resize:vertical;line-height:1.6}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);outline:none}
+.field .hint{font-size:11px;color:var(--ink-3)}
+.dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+
+/* ---------- tabbar ---------- */
+.tabbar{display:none}
+@media (max-width:900px){
+  body{grid-template-columns:1fr}
+  .rail{display:none}
+  main{padding:16px 15px calc(84px + env(safe-area-inset-bottom));max-width:none}
+  .topbar{padding-bottom:14px;margin-bottom:20px}
+  .topbar h1{font-size:17px}
+  .page-sub{font-size:12px}
+  .kanban{grid-template-columns:1fr;gap:22px}
+  .week-grid{grid-template-columns:1fr;gap:8px}
+  .day{min-height:auto}
+  .metric-grid{grid-template-columns:1fr}
+  .mcard{max-width:none}
+  .spark{max-width:220px}
+  .exec-head{flex-wrap:wrap;gap:12px}
+  .exec-bar{order:3;width:100%;flex-basis:100%}
+  .focus-strip{grid-template-columns:minmax(0,1fr) auto;gap:7px 8px;padding:12px 13px}
+  .fs-label{grid-row:1;grid-column:1}
+  .fs-link{grid-row:1;grid-column:2;justify-self:end}
+  .fs-items{grid-row:2;grid-column:1/-1;flex-direction:column;gap:3px}
+  .day-add{padding:11px 0 2px;font-size:12px;min-height:40px}
+  .tiny-task{padding:4px 0}
+  .tiny-task input{width:14px;height:14px;margin-top:1px}
+  .prio .btn-ghost{padding:9px 10px}
+  .tab .ti{display:none}
+  .task input[type=checkbox]{width:17px;height:17px}
+  .log-day{flex-direction:column;gap:6px}
+  .log-date{width:auto;display:flex;align-items:baseline;gap:6px}
+  .log-date .wd2{margin-top:0}
+  .rev-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rev-mrow{grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:11px 13px}
+  .rev-mname{grid-column:1;grid-row:1}
+  .rev-mvals{grid-column:1;grid-row:2;font-size:11.5px}
+  .rev-delta{grid-column:2;grid-row:1 / span 2;align-self:center}
+  .rev-q textarea{min-height:52px}
+  .rev-foot{flex-wrap:wrap}
+  .rev-foot .btn{margin-left:0;width:100%}
+  .tabbar{
+    display:grid;grid-template-columns:repeat(6,1fr);position:fixed;bottom:0;left:0;right:0;z-index:50;
+    background:var(--surface);border-top:1px solid var(--line);
+    padding:5px 4px calc(5px + env(safe-area-inset-bottom));
+  }
+  .tab{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    padding:7px 2px;min-height:48px;border-radius:var(--r-sm);text-decoration:none;
+    font-size:10.5px;color:var(--ink-3);
+  }
+  .tab .ti{font-family:var(--mono);font-size:9.5px;opacity:.6}
+  .tab[aria-current="page"]{color:var(--accent);background:var(--accent-soft);font-weight:500}
+  .tab[aria-current="page"] .ti{opacity:1}
+  dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 40px)}
+  .dlg-inner{padding:18px 18px 14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<aside class="rail">
+  <div>
+    <div class="brand-mark">Life OS</div>
+    <div class="brand-sub" id="railWeek">—</div>
+  </div>
+  <nav class="rail-nav" id="railNav"></nav>
+  <div class="rail-foot">
+    <div class="rail-stat" id="railStats"></div>
+    <div class="rail-actions">
+      <button data-act="export" type="button">导出</button>
+      <button data-act="import" type="button">导入</button>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div>
+      <h1 id="pageTitle">决策</h1>
+      <p class="page-sub" id="pageSub"></p>
+    </div>
+    <div class="topbar-actions" id="topActions"></div>
+  </header>
+  <div id="view"></div>
+</main>
+
+<nav class="tabbar" id="tabbar"></nav>
+<dialog id="dlg"></dialog>
+<input type="file" id="fileIn" accept="application/json" hidden>
+
+<script>
+/* ======================= 基础工具 ======================= */
+const KEY = 'lifeos.v1';
+const $ = (s, r=document) => r.querySelector(s);
+
+const pad = n => String(n).padStart(2, '0');
+function todayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function parseKey(s){
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function fmtShort(s){ // 10-29
+  const [,m,d] = s.split('-');
+  return `${m}-${d}`;
+}
+function fmtCN(d){
+  const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  return `${d.getMonth()+1}月${d.getDate()}日 ${wd}`;
+}
+function mondayOf(d){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay()+6)%7));
+  return x;
+}
+function weekKey(d){
+  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  t.setDate(t.getDate() - ((t.getDay()+6)%7) + 3);
+  const f = new Date(t.getFullYear(), 0, 4);
+  f.setDate(f.getDate() - ((f.getDay()+6)%7) + 3);
+  const wk = 1 + Math.round((t - f) / (7*864e5));
+  return `${t.getFullYear()}-W${pad(wk)}`;
+}
+function weekRange(d){
+  const m = mondayOf(d);
+  const s = new Date(m); s.setDate(m.getDate()+6);
+  return `${m.getMonth()+1}/${m.getDate()} – ${s.getMonth()+1}/${s.getDate()}`;
+}
+const uid = () => Math.random().toString(36).slice(2,9);
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ======================= 状态 ======================= */
+function blank(){
+  return { v:1, decisions:[], metrics:[], weeks:{}, logs:[], reviews:{} };
+}
+let S = load() || blank();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    return Object.assign(blank(), o);
+  }catch(e){ return null; }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+}
+function week(wk){
+  if(!S.weeks[wk]) S.weeks[wk] = { priorities:[], days:{} };
+  const w = S.weeks[wk];
+  if(!w.priorities) w.priorities = [];
+  if(!w.days) w.days = {};
+  return w;
+}
+function dayTasks(wk, dk){
+  const w = week(wk);
+  if(!w.days[dk]) w.days[dk] = [];
+  return w.days[dk];
+}
+
+/* ======================= 页面定义 ======================= */
+const PAGES = [
+  { id:'decisions', n:'01', t:'决策', sub:'把需要判断的事摆上台面，并留下当时的理由' },
+  { id:'monitor',   n:'02', t:'监控', sub:'只留少数几个真正影响判断的指标' },
+  { id:'week',      n:'03', t:'周计划', sub:'这周只推三件事' },
+  { id:'execute',   n:'04', t:'执行', sub:'今天要落地的动作' },
+  { id:'log',       n:'05', t:'记录', sub:'发生了什么，作为以后复盘的证据' },
+  { id:'review',    n:'06', t:'复盘', sub:'把这一周变成判断：哪条假设被证据推翻了' }
+];
+const pageById = id => PAGES.find(p => p.id === id) || PAGES[0];
+
+/* ======================= 路由渲染 ======================= */
+function currentPage(){
+  const h = location.hash.replace(/^#/, '');
+  return PAGES.some(p => p.id === h) ? h : 'decisions';
+}
+function render(){
+  const id = currentPage();
+  const p = pageById(id);
+
+  $('#pageTitle').textContent = p.t;
+  $('#pageSub').textContent = id === 'execute' ? `${fmtCN(new Date())} · ${p.sub}` : p.sub;
+  $('#railWeek').textContent = `${weekKey(new Date())} · ${weekRange(new Date())}`;
+
+  $('#railNav').innerHTML = PAGES.map(x =>
+    `<a class="nav-item" href="#${x.id}" ${x.id===id?'aria-current="page"':''}><span class="idx">${x.n}</span><span>${x.t}</span></a>`
+  ).join('');
+
+  $('#tabbar').innerHTML = PAGES.map(x =>
+    `<a class="tab" href="#${x.id}" ${x.id===id?'aria-current="page"':''}><span class="ti">${x.n}</span><span>${x.t}</span></a>`
+  ).join('');
+
+  const actions = {
+    decisions: `<button class="btn btn-primary" data-act="newDecision" type="button">新建决策</button>`,
+    monitor:   `<button class="btn btn-primary" data-act="newMetric" type="button">新指标</button>`,
+    week:      `<button class="btn btn-primary" data-act="addPriority" type="button">加本周重点</button>`,
+    execute:   ``,
+    log:       ``
+  };
+  $('#topActions').innerHTML = actions[id] || '';
+
+  const view = $('#view');
+  view.innerHTML = ({
+    decisions: renderDecisions,
+    monitor:   renderMonitor,
+    week:      renderWeek,
+    execute:   renderExecute,
+    log:       renderLog,
+    review:    renderReview
+  })[id]();
+
+  renderRailStats();
+  bindInline(view);
+  save();
+}
+
+function renderRailStats(){
+  const dk = todayKey();
+  const wk = weekKey(new Date());
+  const tasks = dayTasks(wk, dk);
+  const done = tasks.filter(t => t.done).length;
+  const openDec = S.decisions.filter(d => d.status === 'open').length;
+  $('#railStats').innerHTML =
+    `今日 <b>${done}/${tasks.length}</b><br>待决 <b>${openDec}</b> · 指标 <b>${S.metrics.length}</b><br>记录 <b>${S.logs.length}</b>`;
+}
+
+/* ======================= 01 决策 ======================= */
+const DSTATUS = { open:'待决', decided:'已决 · 待验证', reviewed:'已复盘' };
+
+function renderDecisions(){
+  if(!S.decisions.length) return emptyBox(
+    '还没有决策记录',
+    '决策板块存的是「当时为什么这么选」。真正值钱的不是结论，是你写下理由的那一刻——半年后回看，才知道判断错在哪。',
+    'newDecision', '新建第一个决策'
+  );
+
+  const order = ['open','decided','reviewed'];
+  const today = todayKey();
+  return `<div class="kanban">` + order.map(st => {
+    const items = S.decisions.filter(d => d.status === st)
+      .sort((a,b) => (a.deadline||'9999').localeCompare(b.deadline||'9999'));
+    return `<div class="col">
+      <div class="col-h"><span>${DSTATUS[st]}</span><span class="count">${items.length}</span></div>
+      ${items.length ? items.map(d => decisionCard(d, today)).join('') : '<p class="col-empty">—</p>'}
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function decisionCard(d, today){
+  const late = d.status === 'open' && d.deadline && d.deadline < today;
+  const opts = (d.options||[]).map(o => {
+    const picked = d.choice && d.choice.trim() === o.trim();
+    return `<li ${picked?'data-picked':''}>${esc(o)}</li>`;
+  }).join('');
+
+  let extra = '';
+  if(d.status === 'decided' && d.choice){
+    extra = `<div class="dcard-outcome"><b>选了：</b>${esc(d.choice)}${d.rationale?`　${esc(d.rationale)}`:''}</div>`;
+  }
+  if(d.status === 'reviewed' && d.outcome){
+    extra = `<div class="dcard-outcome"><b>结果：</b>${esc(d.outcome)}</div>`;
+  }
+
+  let action = '';
+  if(d.status === 'open') action = `<button class="btn btn-ghost" data-act="decide" data-id="${d.id}" type="button">做决定</button>`;
+  if(d.status === 'decided') action = `<button class="btn btn-ghost" data-act="review" data-id="${d.id}" type="button">记结果</button>`;
+
+  return `<article class="dcard">
+    <div class="dcard-title">${esc(d.title)}</div>
+    ${d.context ? `<p class="dcard-ctx">${esc(d.context)}</p>` : ''}
+    ${opts ? `<ul class="dcard-opts">${opts}</ul>` : ''}
+    ${extra}
+    <div class="dcard-meta">
+      ${d.deadline ? `<span class="due ${late?'late':''}">${late?'已逾期 · ':''}${fmtShort(d.deadline)}</span>` : `<span class="due">无截止</span>`}
+      ${d.status !== 'open' ? `<button class="btn btn-ghost" data-act="toPriority" data-id="${d.id}" type="button">→ 本周</button>` : ''}
+      <div class="dcard-actions">
+        ${action}
+        <button class="btn btn-ghost" data-act="delDecision" data-id="${d.id}" type="button" title="删除">✕</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+/* ======================= 02 监控 ======================= */
+function renderMonitor(){
+  if(!S.metrics.length) return emptyBox(
+    '还没有指标',
+    '监控的位置很贵，只放那些「变了你就必须调整计划」的东西。三个以内通常够用，超过五个基本就没人看了。',
+    'newMetric', '添加第一个指标'
+  );
+
+  const scored = S.metrics.map(m => ({ m, cur: latestValue(m) }));
+  const okCnt = scored.filter(x => goalPct(x.m, x.cur) >= 1).length;
+
+  return `
+    <div class="section-head">
+      <h2>${S.metrics.length} 项指标</h2>
+      <span class="count">达标 ${okCnt}/${S.metrics.length}</span>
+    </div>
+    <div class="metric-grid">
+      ${S.metrics.map(m => metricCard(m, latestValue(m))).join('')}
+    </div>`;
+}
+
+function latestValue(m){
+  if(!m.entries || !m.entries.length) return null;
+  const sorted = [...m.entries].sort((a,b) => a.d.localeCompare(b.d));
+  return sorted[sorted.length-1].v;
+}
+function goalPct(m, cur){
+  if(cur == null || !m.target) return 0;
+  const t = Number(m.target);
+  if(!t) return 0;
+  const p = m.dir === 'down' ? t / cur : cur / t;
+  return Math.max(0, Math.min(1.4, p));
+}
+function spark(entries){
+  const vals = (entries||[]).slice().sort((a,b)=>a.d.localeCompare(b.d)).slice(-14).map(e => Number(e.v));
+  if(vals.length < 2) return '<span class="count" style="font-size:10.5px">数据不足</span>';
+  const w = 110, h = 26, mn = Math.min(...vals), mx = Math.max(...vals), span = (mx-mn) || 1;
+  const pts = vals.map((v,i) => {
+    const x = i/(vals.length-1)*w;
+    const y = h - ((v-mn)/span)*(h-4) - 2;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function metricCard(m, cur){
+  const pct = goalPct(m, cur);
+  const state = pct >= 1 ? '' : (pct >= .8 ? 'warn' : 'danger');
+  const width = Math.min(100, Math.round(pct*100));
+  const dirTxt = m.dir === 'down' ? '越低越好' : '越高越好';
+  return `<div class="mcard">
+    <div class="mcard-top">
+      <span class="mcard-name">${esc(m.name)}</span>
+      <button class="btn btn-ghost" data-act="delMetric" data-id="${m.id}" type="button" title="删除">✕</button>
+    </div>
+    <div class="mcard-val">
+      <span class="n">${cur == null ? '—' : esc(cur)}</span>
+      <span class="u">${esc(m.unit||'')}</span>
+    </div>
+    <div class="mcard-target">目标 ${esc(m.target)}${esc(m.unit||'')} · ${dirTxt}</div>
+    <div class="bar"><i class="${state}" style="width:${width}%"></i></div>
+    <div class="mcard-foot">
+      ${spark(m.entries)}
+      <span class="spacer"></span>
+      <button class="btn btn-ghost" data-act="logMetric" data-id="${m.id}" type="button">+ 记录</button>
+    </div>
+  </div>`;
+}
+
+/* ======================= 03 周计划 ======================= */
+function renderWeek(){
+  const now = new Date();
+  const wk = weekKey(now);
+  const w = week(wk);
+  const mon = mondayOf(now);
+  const today = todayKey();
+
+  const days = Array.from({length:7}, (_,i) => {
+    const d = new Date(mon); d.setDate(mon.getDate()+i);
+    const key = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    return { d, key };
+  });
+
+  const prios = w.priorities.length
+    ? w.priorities.map((p, i) => `
+      <div class="prio ${p.done?'done':''}">
+        <span class="num">${i+1}</span>
+        <span class="txt">${esc(p.text)}</span>
+        <button class="btn btn-ghost" data-act="togglePriority" data-id="${p.id}" type="button">${p.done?'已做':'标记'}</button>
+        <button class="btn btn-ghost" data-act="delPriority" data-id="${p.id}" type="button">✕</button>
+      </div>`).join('')
+    : `<div class="prio"><span class="num">—</span><span class="txt" style="color:var(--ink-3)">这周还没有重点。三件事，多了就等于没有。</span></div>`;
+
+  return `
+    <div class="section-head">
+      <h2>本周重点</h2>
+      <span class="count">${w.priorities.filter(p=>p.done).length}/${w.priorities.length} 完成</span>
+    </div>
+    <div class="prio-list">${prios}</div>
+
+    <div class="section-head">
+      <h2>${weekRange(now)}</h2>
+      <span class="count">${wk}</span>
+    </div>
+    <div class="week-grid">
+      ${days.map(({d, key}) => {
+        const tasks = dayTasks(wk, key);
+        return `<div class="day ${key===today?'is-today':''}">
+          <div class="day-h">
+            <span class="wd">周${['一','二','三','四','五','六','日'][(d.getDay()+6)%7]}</span>
+            <span class="dd">${pad(d.getMonth()+1)}/${pad(d.getDate())}</span>
+          </div>
+          <div class="day-tasks">
+            ${tasks.map(t => `<label class="tiny-task ${t.done?'done':''}">
+              <input type="checkbox" data-act="toggleTask" data-wk="${wk}" data-dk="${key}" data-id="${t.id}" ${t.done?'checked':''}>
+              <span>${esc(t.text)}</span>
+            </label>`).join('')}
+          </div>
+          <button class="day-add" data-act="addTaskAt" data-wk="${wk}" data-dk="${key}" type="button">+ 添加</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ======================= 04 执行 ======================= */
+function renderExecute(){
+  const now = new Date();
+  const dk = todayKey();
+  const wk = weekKey(now);
+  const tasks = dayTasks(wk, dk);
+  const done = tasks.filter(t => t.done).length;
+  const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+
+  const y = new Date(now); y.setDate(y.getDate() - 1);
+  const yk = `${y.getFullYear()}-${pad(y.getMonth()+1)}-${pad(y.getDate())}`;
+  const ywk = weekKey(y);
+  const yRaw = (S.weeks[ywk] && S.weeks[ywk].days && S.weeks[ywk].days[yk]) ? S.weeks[ywk].days[yk] : [];
+  const carry = yRaw.filter(t => !t.done);
+
+  const prios = week(wk).priorities;
+
+  return `
+    <div class="exec-head">
+      <div class="exec-num"><span class="a">${done}</span><span class="b">/ ${tasks.length}</span></div>
+      <div class="exec-bar"><div class="bar"><i style="width:${pct}%"></i></div></div>
+      <div class="exec-pct">${pct}%</div>
+    </div>
+
+    ${carry.length ? `<div class="carry">
+      <span class="lbl">昨日</span>
+      <span><b>${carry.length}</b> 项没做完　${esc(carry.map(x => x.text).join(' · '))}</span>
+      <button class="btn" data-act="carryOver" data-ywk="${ywk}" data-yk="${yk}" type="button">挪到今天</button>
+    </div>` : ''}
+
+    <div class="focus-strip">
+      <span class="fs-label">本周重点</span>
+      <div class="fs-items">
+        ${prios.length
+          ? prios.map(p => `<span class="fs-item ${p.done?'done':''}">${esc(p.text)}</span>`).join('')
+          : `<span class="fs-item" style="color:var(--ink-3)">还没定这周的重点</span>`}
+      </div>
+      <a class="fs-link" href="#week">周计划 →</a>
+    </div>
+
+    ${tasks.length ? `<div class="task-list">
+      ${tasks.map(t => `<div class="task ${t.done?'done':''}">
+        <input type="checkbox" data-act="toggleTask" data-wk="${wk}" data-dk="${dk}" data-id="${t.id}" ${t.done?'checked':''}>
+        <span class="t">${esc(t.text)}</span>
+        ${t.src ? `<span class="src">${esc(t.src)}</span>` : ''}
+      </div>`).join('')}
+    </div>` : `<div class="empty" style="padding:32px 20px"><p>今天还没有动作。别规划了，先写下一个具体到能立刻开始的动作。</p></div>`}
+
+    <form class="inline-add" data-form="quickTask">
+      <input name="text" placeholder="今天要做的一件事…" autocomplete="off">
+      <button class="btn btn-primary" type="submit">添加</button>
+    </form>
+
+    <div class="section-head" style="margin-top:30px">
+      <h2>今日一句</h2>
+      <span class="count">写完直接进「记录」</span>
+    </div>
+    <form class="inline-add" data-form="quickLogToday" style="margin-top:0">
+      <input name="text" placeholder="今天发生了什么，一句话…" autocomplete="off">
+      <button class="btn" type="submit">记下</button>
+    </form>
+  `;
+}
+
+/* ======================= 05 记录 ======================= */
+function renderLog(){
+  if(!S.logs.length) return emptyBox(
+    '还没有记录',
+    '一行字就够。写「今天发生了什么」比写「我怎么想」有价值得多——前者以后能当证据，后者过两周自己都不信。',
+    null, null, true
+  );
+
+  const byDate = {};
+  [...S.logs].sort((a,b) => b.d.localeCompare(a.d)).forEach(l => {
+    (byDate[l.d] = byDate[l.d] || []).push(l);
+  });
+
+  return `
+    <div class="timeline">
+      ${Object.entries(byDate).map(([d, items]) => `
+        <div class="log-day">
+          <div class="log-date">${fmtShort(d)}<span class="wd2">周${['日','一','二','三','四','五','六'][parseKey(d).getDay()]}</span></div>
+          <div class="log-items">
+            ${items.map(l => `<div class="log-item">
+              <span class="dot"></span>
+              <span class="body">${esc(l.text)}</span>
+              ${l.tag ? `<span class="tag">#${esc(l.tag)}</span>` : ''}
+              <button class="btn btn-ghost" data-act="delLog" data-id="${l.id}" type="button" title="删除">✕</button>
+            </div>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+/* ======================= 06 复盘 ======================= */
+let revWk = null;
+const curRevWk = () => revWk || weekKey(new Date());
+
+function wkStart(wk){ // ISO 周 → 该周周一
+  const [y, w] = wk.split('-W').map(Number);
+  const jan4 = new Date(y, 0, 4);
+  const mon1 = new Date(jan4);
+  mon1.setDate(jan4.getDate() - ((jan4.getDay()+6)%7));
+  const d = new Date(mon1);
+  d.setDate(mon1.getDate() + (w-1)*7);
+  return d;
+}
+function wkKeys(wk){
+  const s = wkStart(wk);
+  return Array.from({length:7}, (_,i) => {
+    const d = new Date(s); d.setDate(s.getDate()+i);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  });
+}
+function reviewStats(wk){
+  const w = S.weeks[wk] || { priorities:[], days:{} };
+  const prios = w.priorities || [];
+  const days = w.days || {};
+  let total = 0, done = 0;
+  Object.values(days).forEach(list => (list||[]).forEach(t => { total++; if(t.done) done++; }));
+
+  const keys = wkKeys(wk);
+  const inWk = d => !!d && keys.includes(d);
+  const logs = S.logs.filter(l => inWk(l.d)).sort((a,b) => b.d.localeCompare(a.d));
+  const created  = S.decisions.filter(d => inWk(d.createdAt));
+  const decided  = S.decisions.filter(d => inWk(d.decidedAt));
+  const reviewed = S.decisions.filter(d => inWk(d.reviewedAt));
+  const pending  = S.decisions.filter(d => d.status === 'decided');
+
+  const metrics = S.metrics.map(m => {
+    const es = (m.entries||[]).filter(e => inWk(e.d)).sort((a,b) => a.d.localeCompare(b.d));
+    if(!es.length) return { m, from:null, to:null, n:0 };
+    return { m, from:Number(es[0].v), to:Number(es[es.length-1].v), n:es.length };
+  });
+
+  return { prios, prioDone:prios.filter(p=>p.done).length, total, done, logs, created, decided, reviewed, pending, metrics };
+}
+
+function metricRow({ m, from, to, n }){
+  let vals = '本周无记录', delta = '—', cls = '';
+  if(n === 1){
+    vals = `${from}${m.unit ? ' ' + m.unit : ''}`;
+    delta = '—';
+  } else if(n > 1){
+    const d = Math.round((to - from)*10)/10;
+    const better = m.dir === 'down' ? d < 0 : d > 0;
+    vals = `${from} → ${to}${m.unit ? ' ' + m.unit : ''}`;
+    delta = (d > 0 ? '+' : '') + d;
+    cls = d === 0 ? '' : (better ? 'better' : 'worse');
+  }
+  return `<div class="rev-mrow">
+    <span class="rev-mname">${esc(m.name)}</span>
+    <span class="rev-mvals">${vals}</span>
+    <span class="rev-delta ${cls}">${esc(String(delta))}</span>
+  </div>`;
+}
+
+function renderReview(){
+  const wk = curRevWk();
+  const start = wkStart(wk);
+  const isNow = wk === weekKey(new Date());
+  const st = reviewStats(wk);
+  const rev = (S.reviews && S.reviews[wk]) || { good:'', wrong:'', next:'', savedAt:'' };
+  const taskPct = st.total ? Math.round(st.done/st.total*100) : 0;
+
+  const evidence = st.logs.length
+    ? st.logs.slice(0, 6).map(l => `<div class="rev-line">
+        <span class="d">${fmtShort(l.d)}</span>
+        <span class="t">${esc(l.text)}${l.tag ? ` <span style="color:var(--ink-3)">#${esc(l.tag)}</span>` : ''}</span>
+      </div>`).join('') + (st.logs.length > 6
+        ? `<div class="rev-line muted"><span class="d">…</span><span class="t">还有 ${st.logs.length - 6} 条，在「记录」里</span></div>`
+        : '')
+    : `<div class="rev-line muted"><span class="d">—</span><span class="t">这一周没有留下记录。没有证据的复盘会变成自我安慰。</span></div>`;
+
+  const pendingTxt = st.pending.length
+    ? st.pending.slice(0, 3).map(d => esc(d.title)).join('　·　') + (st.pending.length > 3 ? `　等 ${st.pending.length} 项` : '')
+    : '没有待验证的决定';
+
+  return `
+    <div class="rev-nav">
+      <button class="step" data-act="revGo" data-dir="-1" type="button" aria-label="上一周">‹</button>
+      <span class="wk">${wk}</span>
+      <span class="rng">${weekRange(start)}</span>
+      <button class="step" data-act="revGo" data-dir="1" type="button" aria-label="下一周" ${isNow?'disabled':''}>›</button>
+      ${isNow
+        ? `<span class="now">本周</span>`
+        : `<button class="btn btn-ghost" data-act="revGo" data-dir="0" type="button">回到本周</button>`}
+    </div>
+
+    <div class="rev-stats">
+      <div class="rev-stat"><div class="n">${st.prioDone}<small>/${st.prios.length}</small></div><div class="k">本周重点</div></div>
+      <div class="rev-stat"><div class="n">${taskPct}<small>%</small></div><div class="k">任务完成 ${st.done}/${st.total}</div></div>
+      <div class="rev-stat"><div class="n">${st.decided.length}</div><div class="k">作出决定</div></div>
+      <div class="rev-stat"><div class="n">${st.logs.length}</div><div class="k">记录条数</div></div>
+    </div>
+
+    <div class="rev-block">
+      <h2>指标变化</h2>
+      <div class="rev-table">${st.metrics.length ? st.metrics.map(metricRow).join('') : `<div class="rev-line muted"><span class="d">—</span><span class="t">还没有指标。</span></div>`}</div>
+    </div>
+
+    <div class="rev-block">
+      <h2>决策</h2>
+      <div class="rev-table">
+        <div class="rev-dec"><span>新立 <b>${st.created.length}</b></span><span class="sep">·</span><span>作出决定 <b>${st.decided.length}</b></span><span class="sep">·</span><span>完成复盘 <b>${st.reviewed.length}</b></span></div>
+        <div class="rev-dec"><span style="color:var(--ink-3)">仍待验证</span><span>${pendingTxt}</span></div>
+      </div>
+    </div>
+
+    <div class="rev-block">
+      <h2>本周证据</h2>
+      <div class="rev-table">${evidence}</div>
+    </div>
+
+    <form data-form="saveReview">
+      <input type="hidden" name="wk" value="${wk}">
+      <div class="rev-qs">
+        <div class="rev-q">
+          <label>哪里做对了</label>
+          <textarea name="good" rows="2" placeholder="有效的那几个动作，值得下个月重复">${esc(rev.good||'')}</textarea>
+        </div>
+        <div class="rev-q">
+          <label>哪里判断错了</label>
+          <textarea name="wrong" rows="2" placeholder="当时的哪条假设，被这周的证据推翻了">${esc(rev.wrong||'')}</textarea>
+        </div>
+        <div class="rev-q">
+          <label>下周只改一件</label>
+          <textarea name="next" rows="2" placeholder="一个动作，不是五个愿望">${esc(rev.next||'')}</textarea>
+        </div>
+      </div>
+      <div class="rev-foot">
+        <span class="note">${rev.savedAt ? `已保存 · ${rev.savedAt}` : '写完保存，回到这一周还在'}</span>
+        <button class="btn btn-primary" type="submit">保存复盘</button>
+      </div>
+    </form>
+  `;
+}
+
+/* ======================= 空状态 ======================= */
+function emptyBox(title, body, action, actionLabel, withForm){
+  return `<div class="empty">
+    <p style="font-weight:500;color:var(--ink-2);margin-bottom:8px">${esc(title)}</p>
+    <p>${esc(body)}</p>
+    ${action ? `<div class="empty-actions"><button class="btn btn-primary" data-act="${action}" type="button">${esc(actionLabel)}</button>
+      <button class="btn" data-act="demo" type="button">载入示例</button></div>` : ''}
+  </div>` + (withForm ? logComposer() : '');
+}
+
+function logComposer(){
+  return `<form class="log-form" data-form="quickLog" style="margin-top:18px">
+    <textarea name="text" placeholder="今天发生了什么…" autocomplete="off"></textarea>
+    <div class="log-form-foot">
+      <input name="tag" placeholder="标签（可选，如 健康 / 工作）" autocomplete="off">
+      <button class="btn btn-primary" type="submit">记下</button>
+    </div>
+  </form>`;
+}
+
+/* ======================= 行内表单绑定 ======================= */
+function bindInline(root){
+  // 记录页的输入框（空状态和有内容都要有）
+  if(currentPage() === 'log' && S.logs.length){
+    root.insertAdjacentHTML('afterbegin', logComposer());
+  }
+}
+
+/* ======================= 弹窗 ======================= */
+const dlg = $('#dlg');
+
+function showDlg(html){
+  dlg.innerHTML = html;
+  dlg.showModal();
+  const first = dlg.querySelector('input,textarea,select');
+  if(first) setTimeout(() => first.focus(), 30);
+}
+function closeDlg(){ if(dlg.open) dlg.close(); }
+
+function field(label, name, opts = {}){
+  const { type='text', value='', ph='', hint='', rows=0 } = opts;
+  const input = rows
+    ? `<textarea name="${name}" placeholder="${esc(ph)}" rows="${rows}">${esc(value)}</textarea>`
+    : `<input name="${name}" type="${type}"${type === 'number' ? ' step="any" inputmode="decimal"' : ''} value="${esc(value)}" placeholder="${esc(ph)}">`;
+  return `<div class="field"><label>${esc(label)}</label>${input}${hint?`<span class="hint">${esc(hint)}</span>`:''}</div>`;
+}
+function dlgShell(kind, title, body, submitLabel){
+  return `<form data-kind="${kind}">
+    <div class="dlg-inner">
+      <div class="dlg-h"><h3>${esc(title)}</h3><button class="btn btn-ghost" type="button" data-act="closeDlg">✕</button></div>
+      ${body}
+      <div class="dlg-foot">
+        <button class="btn" type="button" data-act="closeDlg">取消</button>
+        <button class="btn btn-primary" type="submit">${esc(submitLabel)}</button>
+      </div>
+    </div>
+  </form>`;
+}
+
+function openNewDecision(){
+  showDlg(dlgShell('newDecision', '新建决策', `
+    ${field('要决定什么', 'title', {ph:'一句话说清这个判断', hint:'例：要不要接这个项目'})}
+    ${field('背景', 'context', {ph:'约束、期限、为什么现在必须决定', rows:3})}
+    ${field('选项', 'options', {ph:'一行一个', rows:3, hint:'写下来才能比较，别在脑子里选'})}
+    ${field('截止日期', 'deadline', {type:'date'})}
+  `, '建好'));
+}
+
+function openDecide(d){
+  showDlg(dlgShell('decide', '记录决定了什么', `
+    <input type="hidden" name="id" value="${d.id}">
+    ${field('你选了哪个', 'choice', {ph: d.options && d.options[0] ? d.options[0] : '写你实际选的那个'})}
+    ${field('为什么', 'rationale', {ph:'当时的理由，一句话就够', rows:3, hint:'这条比结论重要，半年后你会用得上'})}
+  `, '记下'));
+}
+
+function openReview(d){
+  showDlg(dlgShell('review', '这个决定后来怎么样了', `
+    <input type="hidden" name="id" value="${d.id}">
+    ${field('实际结果', 'outcome', {ph:'发生了什么，和预期差在哪', rows:4})}
+    ${field('下次会怎么改', 'reviewNote', {ph:'可留空', rows:2})}
+  `, '完成复盘'));
+}
+
+function openNewMetric(){
+  showDlg(dlgShell('newMetric', '新建指标', `
+    ${field('指标名', 'name', {ph:'例：睡眠时长 / 每周运动次数'})}
+    ${field('单位', 'unit', {ph:'小时 / 次 / 页', hint:'可留空'})}
+    ${field('目标值', 'target', {type:'number', ph:'7.5'})}
+    <div class="field"><label>方向</label>
+      <select name="dir">
+        <option value="up">越高越好</option>
+        <option value="down">越低越好</option>
+      </select>
+    </div>
+  `, '创建'));
+}
+
+function openLogMetric(m){
+  const cur = latestValue(m);
+  showDlg(dlgShell('logMetric', `记录 · ${m.name}`, `
+    <input type="hidden" name="id" value="${m.id}">
+    ${field('今天的值', 'value', {type:'number', value: cur==null?'':cur, ph:'0'})}
+    ${field('日期', 'date', {type:'date', value: todayKey()})}
+  `, '保存'));
+}
+
+function openAddTask(wk, dk, label){
+  showDlg(dlgShell('addTask', label ? `添加到 ${label}` : '添加任务', `
+    <input type="hidden" name="wk" value="${wk}">
+    <input type="hidden" name="dk" value="${dk}">
+    ${field('动作', 'text', {ph:'具体到能立刻开始', hint:'动词开头，别写「推进项目」'})}
+  `, '添加'));
+}
+
+/* ======================= 动作分派 ======================= */
+const ACTIONS = {
+  newDecision: () => openNewDecision(),
+  newMetric:   () => openNewMetric(),
+  closeDlg:    () => closeDlg(),
+
+  decide: el => { const d = S.decisions.find(x => x.id === el.dataset.id); if(d) openDecide(d); },
+  review: el => { const d = S.decisions.find(x => x.id === el.dataset.id); if(d) openReview(d); },
+
+  delDecision: el => {
+    if(!confirm('删掉这条决策？理由和结果都会一起消失。')) return;
+    S.decisions = S.decisions.filter(x => x.id !== el.dataset.id);
+    render();
+  },
+
+  toPriority: el => {
+    const d = S.decisions.find(x => x.id === el.dataset.id);
+    if(!d) return;
+    const w = week(weekKey(new Date()));
+    if(w.priorities.length >= 3){ alert('本周已经有三个重点了。删一个再加。'); return; }
+    w.priorities.push({ id: uid(), text: d.title, done: false, from: d.id });
+    render();
+  },
+
+  addPriority: () => {
+    const w = week(weekKey(new Date()));
+    if(w.priorities.length >= 3){ alert('三个就够了。真正的约束不是时间，是注意力。'); return; }
+    showDlg(dlgShell('addPriority', '加本周重点', `${field('重点', 'text', {ph:'这周必须推进的一件事'})}`, '加入'));
+  },
+
+  togglePriority: el => {
+    const w = week(weekKey(new Date()));
+    const p = w.priorities.find(x => x.id === el.dataset.id);
+    if(p){ p.done = !p.done; render(); }
+  },
+
+  delPriority: el => {
+    const w = week(weekKey(new Date()));
+    w.priorities = w.priorities.filter(x => x.id !== el.dataset.id);
+    render();
+  },
+
+  delMetric: el => {
+    if(!confirm('删掉这个指标和它的全部历史数据？')) return;
+    S.metrics = S.metrics.filter(x => x.id !== el.dataset.id);
+    render();
+  },
+  logMetric: el => { const m = S.metrics.find(x => x.id === el.dataset.id); if(m) openLogMetric(m); },
+
+  revGo: el => {
+    const dir = Number(el.dataset.dir);
+    if(dir === 0){
+      revWk = null;
+    } else {
+      const s = wkStart(curRevWk());
+      s.setDate(s.getDate() + dir*7);
+      const next = weekKey(s);
+      revWk = next >= weekKey(new Date()) ? null : next;
+    }
+    render();
+  },
+
+  carryOver: el => {
+    const src = (S.weeks[el.dataset.ywk] && S.weeks[el.dataset.ywk].days[el.dataset.yk]) || [];
+    const dst = dayTasks(weekKey(new Date()), todayKey());
+    src.filter(t => !t.done).forEach(t => {
+      if(!dst.some(d => d.text === t.text)) dst.push({ id: uid(), text: t.text, done: false, src: '顺延' });
+    });
+    save(); render();
+  },
+
+  addTaskAt: el => {
+    const dk = el.dataset.dk;
+    const label = `${parseKey(dk).getMonth()+1}/${parseKey(dk).getDate()}`;
+    openAddTask(el.dataset.wk, dk, label);
+  },
+
+  toggleTask: el => {
+    const w = week(el.dataset.wk);
+    const list = w.days[el.dataset.dk] || [];
+    const t = list.find(x => x.id === el.dataset.id);
+    if(t){ t.done = el.checked; save(); render(); }
+  },
+
+  delLog: el => {
+    S.logs = S.logs.filter(x => x.id !== el.dataset.id);
+    render();
+  },
+
+  export: () => {
+    const blob = new Blob([JSON.stringify(S, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `life-os-${todayKey()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
+
+  import: () => $('#fileIn').click(),
+
+  demo: () => {
+    if(!confirm('载入示例数据？会覆盖当前内容。')) return;
+    S = demoData();
+    save(); render();
+  }
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+  if(ACTIONS[act]) ACTIONS[act](el);
+});
+
+/* ======================= 表单提交 ======================= */
+document.addEventListener('submit', e => {
+  const f = e.target;
+
+  if(f.dataset.form === 'quickTask'){
+    e.preventDefault();
+    const text = f.text.value.trim();
+    if(!text) return;
+    const wk = weekKey(new Date()), dk = todayKey();
+    dayTasks(wk, dk).push({ id: uid(), text, done: false });
+    save(); render();
+    return;
+  }
+
+  if(f.dataset.form === 'quickLogToday'){
+    e.preventDefault();
+    const text = f.text.value.trim();
+    if(!text) return;
+    S.logs.push({ id: uid(), d: todayKey(), text, tag: '' });
+    save(); render();
+    return;
+  }
+
+  if(f.dataset.form === 'quickLog'){
+    e.preventDefault();
+    const text = f.text.value.trim();
+    if(!text) return;
+    S.logs.push({ id: uid(), d: todayKey(), text, tag: f.tag.value.trim().replace(/^#/, '') });
+    save(); render();
+    return;
+  }
+
+  if(f.dataset.form === 'saveReview'){
+    e.preventDefault();
+    const wk = f.wk.value;
+    S.reviews = S.reviews || {};
+    S.reviews[wk] = {
+      good: f.good.value.trim(),
+      wrong: f.wrong.value.trim(),
+      next: f.next.value.trim(),
+      savedAt: todayKey()
+    };
+    save(); render();
+    return;
+  }
+
+  const kind = f.dataset.kind;
+  if(!kind) return;
+  e.preventDefault();
+
+  if(kind === 'newDecision'){
+    const title = f.title.value.trim();
+    if(!title) return;
+    const options = f.options.value.split('\n').map(s => s.trim()).filter(Boolean);
+    S.decisions.push({
+      id: uid(), title, context: f.context.value.trim(), options,
+      deadline: f.deadline.value || '', status: 'open',
+      choice: '', rationale: '', outcome: '', reviewNote: '', createdAt: todayKey()
+    });
+  }
+
+  if(kind === 'decide'){
+    const d = S.decisions.find(x => x.id === f.id.value);
+    if(d){
+      d.choice = f.choice.value.trim();
+      d.rationale = f.rationale.value.trim();
+      d.status = 'decided';
+      d.decidedAt = todayKey();
+    }
+  }
+
+  if(kind === 'review'){
+    const d = S.decisions.find(x => x.id === f.id.value);
+    if(d){
+      d.outcome = f.outcome.value.trim();
+      d.reviewNote = f.reviewNote.value.trim();
+      d.status = 'reviewed';
+      d.reviewedAt = todayKey();
+    }
+  }
+
+  if(kind === 'newMetric'){
+    const name = f.name.value.trim();
+    if(!name) return;
+    S.metrics.push({
+      id: uid(), name, unit: f.unit.value.trim(),
+      target: f.target.value || '', dir: f.dir.value, entries: [], createdAt: todayKey()
+    });
+  }
+
+  if(kind === 'logMetric'){
+    const m = S.metrics.find(x => x.id === f.id.value);
+    const v = f.value.value;
+    if(m && v !== ''){
+      const d = f.date.value || todayKey();
+      m.entries = (m.entries || []).filter(en => en.d !== d);
+      m.entries.push({ d, v: Number(v) });
+    }
+  }
+
+  if(kind === 'addPriority'){
+    const text = f.text.value.trim();
+    if(text){
+      week(weekKey(new Date())).priorities.push({ id: uid(), text, done: false });
+    }
+  }
+
+  if(kind === 'addTask'){
+    const text = f.text.value.trim();
+    if(text){
+      dayTasks(f.wk.value, f.dk.value).push({ id: uid(), text, done: false });
+    }
+  }
+
+  closeDlg();
+  save();
+  render();
+});
+
+/* ======================= 导入 ======================= */
+$('#fileIn').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const o = JSON.parse(r.result);
+      if(!o || typeof o !== 'object') throw new Error('格式不对');
+      S = Object.assign(blank(), o);
+      save(); render();
+    }catch(err){
+      alert('导入失败：' + err.message);
+    }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+});
+
+/* ======================= 示例数据 ======================= */
+function demoData(){
+  const t = todayKey();
+  const now = new Date();
+  const wk = weekKey(now);
+  const mon = mondayOf(now);
+  const key = i => { const d = new Date(mon); d.setDate(mon.getDate()+i); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+  const back = n => { const d = new Date(); d.setDate(d.getDate()-n); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+
+  const mk = (n, v) => Array.from({length:n}, (_,i) => ({ d: back((n-1-i)*2), v }));
+  const prevMon = new Date(mon); prevMon.setDate(mon.getDate()-7);
+  const prevWk = weekKey(prevMon);
+
+  return {
+    v:1,
+    decisions:[
+      { id:'d1', title:'要不要接这个外部项目', context:'报价还行，但会占掉每周至少两天。手上主线已经排到月底。',
+        options:['接，压缩主线进度','不接，专心主线','接但延长交付期'],
+        deadline:key(2), status:'open', choice:'', rationale:'', outcome:'', reviewNote:'', createdAt:back(3) },
+      { id:'d2', title:'健身改到早上还是晚上', context:'晚上经常被临时的事挤掉，已经连续两周没去。',
+        options:['早上 7 点','晚上 8 点后','周末集中'],
+        deadline:back(1), status:'decided', choice:'早上 7 点',
+        rationale:'晚上的时间不属于我，早上的属于。', outcome:'', reviewNote:'', createdAt:back(9), decidedAt:back(5) },
+      { id:'d3', title:'要不要报那个写作课', context:'',
+        options:['报','自己看资料'],
+        deadline:'', status:'reviewed', choice:'不报',
+        rationale:'课程大纲里的东西我基本都看过，缺的是写，不是学。',
+        outcome:'省下的钱和时间都投进了每周产出，三个月写了 11 篇。',
+        reviewNote:'同类课程以后先看作业要求，别看大纲。', createdAt:back(70), decidedAt:back(68), reviewedAt:back(20) }
+    ],
+    metrics:[
+      { id:'m1', name:'睡眠时长', unit:'小时', target:'7.5', dir:'up',
+        entries:[...mk(9, 6.8), {d:back(2), v:7.2}, {d:back(1), v:7.4}, {d:t, v:7.1}] },
+      { id:'m2', name:'每周运动', unit:'次', target:'3', dir:'up',
+        entries:[{d:back(21),v:1},{d:back(14),v:2},{d:back(7),v:2},{d:back(3),v:3}] },
+      { id:'m3', name:'深度工作', unit:'小时', target:'20', dir:'up',
+        entries:[{d:back(20),v:12},{d:back(13),v:15},{d:back(6),v:9},{d:back(1),v:14}] }
+    ],
+    weeks:{
+      [wk]:{
+        priorities:[
+          { id:'p1', text:'把主线方案的第一版写完', done:false },
+          { id:'p2', text:'睡眠拉回 7.5 小时', done:true },
+          { id:'p3', text:'砍掉三个无效会议', done:false }
+        ],
+        days:{
+          [key(0)]:[{id:'t1',text:'写方案第 2 节',done:true},{id:'t2',text:'回两封积压邮件',done:false}],
+          [key(1)]:[{id:'t3',text:'和设计师过一次稿',done:false}],
+          [key(2)]:[{id:'t4',text:'整理指标数据',done:false}],
+          [key(3)]:[{id:'t5',text:'写方案第 3 节',done:false},{id:'t7',text:'把睡眠数据补录进监控',done:true},{id:'t8',text:'回复设计师的改稿意见',done:false}],
+          [key(4)]:[], [key(5)]:[{id:'t6',text:'长距离散步 8km',done:false}], [key(6)]:[]
+        }
+      }
+    },
+    logs:[
+      { id:'l1', d:t, text:'早上效率明显高于下午，把写作全部挪到了 7 点到 10 点。', tag:'工作' },
+      { id:'l2', d:t, text:'睡了 7 小时 10 分，比上周同期好。', tag:'健康' },
+      { id:'l3', d:back(1), text:'下午三个会连在一起，中间没有空档，晚上直接瘫了。', tag:'复盘' },
+      { id:'l4', d:back(2), text:'拒绝了那个外部项目的第一次接触，没有立刻答应。', tag:'决策' }
+    ],
+    reviews:{
+      [prevWk]:{
+        good:'把写作挪到早上以后，连续四天都在十点前写完，质量也稳。',
+        wrong:'以为「晚上还有时间」。那段时间每次都被人找、被临时的事吃掉，是假设错了，不是自制力问题。',
+        next:'只改一件：晚上八点以后不安排任何需要动脑的事。',
+        savedAt: back(7)
+      }
+    }
+  };
+}
+
+/* ======================= 启动 ======================= */
+window.addEventListener('hashchange', render);
+render();
+</script>
+</body>
+</html>
