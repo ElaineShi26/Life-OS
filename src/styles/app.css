@@ -2170,3 +2170,102 @@ dialog::backdrop {
   color: var(--danger);
   margin-bottom: 10px;
 }
+
+/* 主题：沙茶 */
+[data-theme="shacha"] {
+  --accent: #b26b36;
+  --accent-soft: #f6e7d5;
+  --bg: #fbf3e9;
+  --surface-2: #f7ede0;
+  --surface-3: #f0e2d0;
+  --line: #ebdfce;
+  --line-2: #dccdb8;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="shacha"] {
+    --accent: #d99760;
+    --accent-soft: #2a211a;
+    --bg: #141110;
+    --surface: #1b1715;
+    --surface-2: #221d1a;
+    --surface-3: #38302b;
+    --line: #2a2420;
+    --line-2: #38302b;
+  }
+}
+
+/* 主题：沙尘 */
+[data-theme="dust"] {
+  --accent: #8c7b5e;
+  --accent-soft: #ece8de;
+  --bg: #f4f2ec;
+  --surface-2: #f0ede6;
+  --surface-3: #e8e4da;
+  --line: #e0dcd2;
+  --line-2: #cdc7ba;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="dust"] {
+    --accent: #b4a488;
+    --accent-soft: #221f1a;
+    --bg: #121210;
+    --surface: #191816;
+    --surface-2: #201f1c;
+    --surface-3: #35322c;
+    --line: #282622;
+    --line-2: #35322c;
+  }
+}
+
+/* ============ 语音输入 ============ */
+.mic-btn {
+  padding: 6px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--ink-2);
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.mic-btn:hover {
+  border-color: var(--ink-3);
+  color: var(--ink);
+}
+
+.mic-btn.rec {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+  animation: mic-pulse 1.4s ease-in-out infinite;
+}
+
+.mic-btn[disabled] {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@keyframes mic-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mic-btn.rec {
+    animation: none;
+  }
+}
+
+.mic-err {
+  font-size: 11.5px;
+  color: var(--danger);
+  padding: 2px 4px 0;
+}

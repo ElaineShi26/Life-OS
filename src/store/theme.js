@@ -8,6 +8,8 @@ export const THEMES = [
   { id: 'violet', name: '紫', color: '#5B4B9E', bg: '#F7F6FB' },
   { id: 'lilac', name: '淡紫', color: '#7C6BA8', bg: '#FAF8FD' },
   { id: 'rose', name: '淡粉', color: '#A45C74', bg: '#FCF7F8' },
+  { id: 'shacha', name: '沙茶', color: '#B26B36', bg: '#FBF3E9' },
+  { id: 'dust', name: '沙尘', color: '#8C7B5E', bg: '#F4F2EC' },
 ]
 
 export function currentTheme() {

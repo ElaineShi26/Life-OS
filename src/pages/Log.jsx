@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useState, useRef } from 'preact/hooks'
 import { state, setStatus, addLog, updateLog, removeLog } from '../store/state'
 import { todayKey, parseKey, fmtShort, WEEKDAY_CN, pad } from '../lib/date'
 import { Spark } from '../ui/Spark'
@@ -23,6 +23,13 @@ function lastDays(n = 14) {
 export function Log() {
   const s = state.value
   const [editing, setEditing] = useState(null)
+  const [recording, setRecording] = useState(false)
+  const [transcribing, setTranscribing] = useState(false)
+  const [micErr, setMicErr] = useState('')
+  const recorderRef = useRef(null)
+  const chunksRef = useRef([])
+  const timerRef = useRef(null)
+  const textRef = useRef(null)
   const dk = todayKey()
   const today = s.status[dk] || {}
   const days = lastDays(14)
@@ -33,6 +40,62 @@ export function Log() {
   })
 
   const groupedDates = Object.keys(byDate).sort((a, b) => b.localeCompare(a))
+
+  async function startRecording() {
+    setMicErr('')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mr = new MediaRecorder(stream)
+      chunksRef.current = []
+      mr.ondataavailable = (e) => {
+        if (e.data.size) chunksRef.current.push(e.data)
+      }
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        setRecording(false)
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
+        if (!blob.size) return
+        setTranscribing(true)
+        try {
+          const res = await fetch('/api/transcribe', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'content-type': blob.type.split(';')[0] || 'audio/webm' },
+            body: blob,
+          })
+          const data = await res.json().catch(() => null)
+          if (!res.ok) throw new Error(data?.error || '识别失败')
+          const text = (data?.text || '').trim()
+          if (!text) {
+            setMicErr('没听清，再说一次？')
+          } else if (textRef.current) {
+            const cur = textRef.current.value.trim()
+            textRef.current.value = cur ? cur + ' ' + text : text
+            textRef.current.focus()
+          }
+        } catch (err) {
+          setMicErr(err.message || '识别失败')
+        } finally {
+          setTranscribing(false)
+        }
+      }
+      mr.start()
+      recorderRef.current = mr
+      setRecording(true)
+      // 60 秒自动停，避免超长音频
+      timerRef.current = setTimeout(() => {
+        if (mr.state === 'recording') mr.stop()
+      }, 60000)
+    } catch (err) {
+      setMicErr('麦克风用不了：' + (err?.message || '权限被拒绝'))
+    }
+  }
+
+  function stopRecording() {
+    clearTimeout(timerRef.current)
+    const mr = recorderRef.current
+    if (mr && mr.state === 'recording') mr.stop()
+  }
 
   return (
     <>
@@ -85,8 +148,23 @@ export function Log() {
           el.reset()
         }}
       >
-        <textarea name="text" placeholder="今天发生了什么…" autocomplete="off" />
+        <textarea
+          name="text"
+          ref={textRef}
+          placeholder="今天发生了什么…"
+          autocomplete="off"
+        />
+        {micErr ? <div class="mic-err">{micErr}</div> : null}
         <div class="log-form-foot">
+          <button
+            class={`mic-btn ${recording ? 'rec' : ''}`}
+            type="button"
+            disabled={transcribing}
+            onClick={() => (recording ? stopRecording() : startRecording())}
+            title="语音转文字"
+          >
+            {transcribing ? '识别中…' : recording ? '● 停止' : '口述'}
+          </button>
           <input name="tag" placeholder="标签（可选，如 健康 / 工作）" autocomplete="off" />
           <button class="btn btn-primary" type="submit">
             记下
