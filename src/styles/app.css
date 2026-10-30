@@ -2245,3 +2245,164 @@ dialog::backdrop {
   color: var(--danger);
   padding: 2px 4px 0;
 }
+
+/* ============ 待拆解 / 放弃清单 ============ */
+.goal-pending {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+.dual-hint {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.6;
+  padding: 2px 0 6px;
+  text-wrap: pretty;
+}
+
+.abandoned {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.abandoned summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--ink-3);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.abandoned summary::-webkit-details-marker {
+  display: none;
+}
+
+.abandoned summary::before {
+  content: '▸';
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.abandoned[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.abandoned-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.abandoned-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.abandoned-item:last-child {
+  border-bottom: 0;
+}
+
+.ai-title {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.ai-reason {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 3px;
+  text-wrap: pretty;
+}
+
+.ai-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+
+/* ============ 复盘事实核对 ============ */
+.fact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0 4px;
+  font-size: 13px;
+}
+
+.fact-mark {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  min-width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.fact-mark.ok {
+  color: var(--accent);
+}
+
+.fact-mark.warn {
+  color: var(--warn);
+}
+
+.fact-mark.miss {
+  color: var(--ink-3);
+}
+
+.fact-text {
+  color: var(--ink-2);
+  text-wrap: pretty;
+  line-height: 1.55;
+}
+
+.fact-text b {
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.fact-sub {
+  margin: 0 0 6px;
+  padding: 0 0 0 36px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fact-sub li {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.fact-sub li.ok {
+  color: var(--accent);
+}
+
+.fact-sub li.miss {
+  color: var(--ink-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--line-2);
+}
+
+.fact-sub li.more {
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.fact-empty {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  padding: 6px 0 2px;
+  text-wrap: pretty;
+}

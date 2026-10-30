@@ -220,6 +220,7 @@ export function Goals() {
 
   const tp = yearProgress(year)
   const left = daysLeftInYear(year)
+  const dropped = s.projects.filter((p) => p.status === 'dropped')
 
   if (!goals.length) {
     return (
@@ -260,6 +261,21 @@ export function Goals() {
           setOpenProjectId={setOpenProjectId}
         />
       ))}
+
+      {dropped.length ? (
+        <details class="abandoned">
+          <summary>已放弃 {dropped.length} 项 · 为什么放弃比完成了什么更能说明问题</summary>
+          <div class="abandoned-list">
+            {dropped.map((p) => (
+              <div class="abandoned-item" key={p.id}>
+                <div class="ai-title">{p.title}</div>
+                <div class="ai-reason">{p.droppedReason || '当时没记原因'}</div>
+                {p.droppedAt ? <div class="ai-meta">{fmtShort(p.droppedAt)}</div> : null}
+              </div>
+            ))}
+          </div>
+        </details>
+      ) : null}
     </>
   )
 }
@@ -316,6 +332,13 @@ function GoalCard({ goal, year, openProjectId, setOpenProjectId }) {
   const pace = paceLabel(delta)
   const isMetric = goal.type === 'metric'
   const cur = isMetric ? latestValue(goal) : null
+  // 成果型目标没有可计算的进度来源时，0% 不是「落后」，是「还没开始」
+  // 两种情况：① 一个项目都没有 ② 有项目但里面没里程碑也没任务
+  const measurable = ps.some(
+    (p) => (p.milestones || []).length > 0 || s.tasks.some((t) => t.projectId === p.id)
+  )
+  const needsBreakdown = !isMetric && !measurable
+  const pendingLabel = ps.length ? '未开始' : '待拆解'
 
   return (
     <article class="goal-card">
@@ -330,11 +353,17 @@ function GoalCard({ goal, year, openProjectId, setOpenProjectId }) {
           ) : null}
         </div>
         <div class="goal-right">
-          <div class="goal-pct">
-            {pct(progress)}
-            <small>%</small>
-          </div>
-          <div class={`pace ${pace.tone}`}>{pace.text}</div>
+          {needsBreakdown ? (
+            <div class="goal-pending">{pendingLabel}</div>
+          ) : (
+            <>
+              <div class="goal-pct">
+                {pct(progress)}
+                <small>%</small>
+              </div>
+              <div class={`pace ${pace.tone}`}>{pace.text}</div>
+            </>
+          )}
         </div>
       </div>
 
@@ -358,6 +387,14 @@ function GoalCard({ goal, year, openProjectId, setOpenProjectId }) {
             </button>
           </div>
           <Spark points={sortedSeries(goal).map((p) => p.v)} height={38} />
+        </div>
+      ) : needsBreakdown ? (
+        <div class="dual">
+          <p class="dual-hint">
+            {ps.length
+              ? '项目里还没有里程碑或任务，进度无从算起。给项目加个里程碑，或者把任务挂到它下面。'
+              : '拆出第一个项目之后，这里才开始计算进度。目标拆不成项目，说明它还不够具体。'}
+          </p>
         </div>
       ) : (
         <div class="dual">
@@ -390,10 +427,10 @@ function GoalCard({ goal, year, openProjectId, setOpenProjectId }) {
             />
           ))
         ) : isMetric ? null : (
-          <div class="project-row">
+          <div class="project-row" style="cursor:pointer" onClick={() => openNewProject(goal.id)}>
             <div class="pj-main">
-              <div class="pj-sub" style="color:var(--ink-3)">
-                还没有项目。目标拆不出项目，说明它还不够具体。
+              <div class="pj-sub" style="color:var(--accent)">
+                + 拆出第一个项目（例：完成初稿）
               </div>
             </div>
           </div>
@@ -439,7 +476,9 @@ function ProjectRow({ project, tasks, open, onToggle }) {
                 任务 {stats.done}/{stats.total}
               </span>
             ) : null}
-            {!ms.length && !stats.total ? <span style="color:var(--ink-3)">空项目</span> : null}
+            {!ms.length && !stats.total ? (
+              <span style="color:var(--warn)">还没内容 · 点开加里程碑</span>
+            ) : null}
           </div>
         </div>
         <div class="pj-bar">
@@ -554,12 +593,19 @@ function openEditProject(project) {
         }
       }}
       onSubmit={(d) => {
+        const reason = (d.droppedReason || '').trim()
+        if (d.status === 'dropped' && !reason) {
+          alert('放弃要留下原因。「做不到」和「不想做」是两回事，三个月后你分不清。')
+          return
+        }
         updateProject(project.id, {
           title: d.title.trim(),
           start: d.start || '',
           end: d.end || '',
           weight: Number(d.weight) || 1,
           status: d.status,
+          droppedReason: d.status === 'dropped' ? reason : project.droppedReason || '',
+          droppedAt: d.status === 'dropped' ? todayKey() : project.droppedAt || '',
         })
         closeDialog()
       }}>
@@ -584,6 +630,14 @@ function openEditProject(project) {
           <option value="dropped">已放弃</option>
         </select>
       </div>
+      <Field
+        label="放弃原因（改状态为「已放弃」时必填）"
+        name="droppedReason"
+        rows={2}
+        value={project.droppedReason || ''}
+        placeholder="例：这个月优先做别的，等 Q2 再看"
+        hint="这条会留在「已放弃」清单里，季度回顾时用得上"
+      />
     </DialogShell>
   )
 }

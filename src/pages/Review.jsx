@@ -10,7 +10,7 @@ import {
   parseKey,
   pad,
 } from '../lib/date'
-import { goalProgress } from '../store/progress'
+import { goalProgress, projectsOf } from '../store/progress'
 
 function keyOf(d) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -37,6 +37,18 @@ export function Review() {
   const decisions = s.decisions.filter((d) => inRange(d.date))
   const prios = s.weeks[wk]?.priorities || []
   const review = s.reviews[wk]
+
+  const lastWeek = weekBounds(offset - 1)
+  const lastPrios = s.weeks[lastWeek.wk]?.priorities || []
+
+  // 本周有完成任务的「项目」，反推哪些目标这周完全没动
+  const touchedProjects = new Set(doneTasks.map((t) => t.projectId).filter(Boolean))
+  const staleGoals = s.goals.filter((g) => {
+    if (g.status !== 'active') return false
+    const ps = projectsOf(g, s.projects)
+    if (!ps.length) return false // 没拆项目的目标单独在目标页提示，这里不重复骂
+    return !ps.some((p) => touchedProjects.has(p.id))
+  })
 
   const pct = (n) => Math.round(n * 100)
 
@@ -84,6 +96,76 @@ export function Review() {
           <div class="n">{decisions.length}</div>
           <div class="k">决策</div>
         </div>
+      </div>
+
+      <div class="rev-block">
+        <div class="section-head">
+          <h2>本周事实</h2>
+          <span class="count">先核对，再判断</span>
+        </div>
+
+        <div class="fact-row">
+          <span class={`fact-mark ${doneTasks.length ? 'ok' : 'miss'}`}>
+            {doneTasks.length ? '✓' : '—'}
+          </span>
+          <span class="fact-text">
+            完成 <b>{doneTasks.length}</b> 项任务
+            {tasks.length ? `（共排出 ${tasks.length} 项）` : ''}
+          </span>
+        </div>
+        {doneTasks.length ? (
+          <ul class="fact-sub">
+            {doneTasks.slice(0, 12).map((t) => (
+              <li key={t.id}>{t.text}</li>
+            ))}
+            {doneTasks.length > 12 ? <li class="more">还有 {doneTasks.length - 12} 项</li> : null}
+          </ul>
+        ) : null}
+
+        {tasks.length - doneTasks.length > 0 ? (
+          <>
+            <div class="fact-row">
+              <span class="fact-mark warn">{tasks.length - doneTasks.length}</span>
+              <span class="fact-text">排了但没做完的</span>
+            </div>
+            <ul class="fact-sub">
+              {tasks.filter((t) => !t.done).slice(0, 12).map((t) => (
+                <li key={t.id}>{t.text}</li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+
+        {lastPrios.length ? (
+          <>
+            <div class="fact-row">
+              <span class="fact-mark">{lastPrios.filter((p) => p.done).length}/{lastPrios.length}</span>
+              <span class="fact-text">上礼拜的三个重点，兑现了多少</span>
+            </div>
+            <ul class="fact-sub">
+              {lastPrios.map((p) => (
+                <li key={p.id} class={p.done ? 'ok' : 'miss'}>
+                  {p.done ? '✓' : '✗'} {p.text}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+
+        {staleGoals.length ? (
+          <div class="fact-row">
+            <span class="fact-mark warn">!</span>
+            <span class="fact-text">
+              这周完全没动过：{staleGoals.map((g) => g.title).join('、')}
+            </span>
+          </div>
+        ) : null}
+
+        {!tasks.length && !logs.length ? (
+          <p class="fact-empty">
+            这一周什么记录都没有。没有事实的复盘，写出来只是情绪。
+          </p>
+        ) : null}
       </div>
 
       <div class="rev-block">

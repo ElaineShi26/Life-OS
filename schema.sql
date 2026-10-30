@@ -25,3 +25,14 @@ CREATE TABLE IF NOT EXISTS states (
   rev         INTEGER NOT NULL DEFAULT 1,
   updated_at  INTEGER NOT NULL
 );
+
+-- 每日快照：保留最近 12 份，防止误删/误改
+CREATE TABLE IF NOT EXISTS backups (
+  id          TEXT PRIMARY KEY,
+  user_id     TEXT NOT NULL,
+  payload     TEXT NOT NULL,
+  rev         INTEGER NOT NULL,
+  created_at  INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_backups_user ON backups(user_id, created_at);

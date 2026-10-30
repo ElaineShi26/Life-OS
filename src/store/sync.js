@@ -43,6 +43,9 @@ export async function bootstrap() {
   }
 
   sync.value = { mode: 'cloud', user: me.user, lastSync: Date.now(), error: null }
+
+  // 静默打一份当日快照（服务端有 20 小时节流，重复调用不会多存）
+  fetch('/api/backup', { method: 'POST', credentials: 'include' }).catch(() => {})
 }
 
 export async function pushNow() {
