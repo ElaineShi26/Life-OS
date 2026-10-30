@@ -117,9 +117,11 @@ export function App() {
   const syncLabel =
     sy.mode === 'cloud'
       ? `已同步 ${new Date(sy.lastSync || Date.now()).toTimeString().slice(0, 5)}`
-      : sy.mode === 'offline'
-        ? '离线 · 只在本地'
-        : '本地模式'
+      : sy.mode === 'cached'
+        ? '同步中…'
+        : sy.mode === 'offline'
+          ? '离线 · 只在本地'
+          : '本地模式'
 
   return (
     <div class="shell">

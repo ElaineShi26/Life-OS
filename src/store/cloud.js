@@ -66,3 +66,24 @@ export async function logout() {
 export function loginWithGitHub() {
   location.href = `${BASE}/auth/github`
 }
+
+/** 一次拿登录态 + 数据，替代原来 me + state 两次往返 */
+export async function fetchBootstrap() {
+  try {
+    const res = await fetch(BASE + '/bootstrap', { credentials: 'include' })
+    const ct = res.headers.get('content-type') || ''
+    if (res.status === 404 || !ct.includes('application/json')) {
+      return { available: false, user: null, state: null, rev: 0 }
+    }
+    if (!res.ok) return { available: true, user: null, state: null, rev: 0 }
+    const data = await res.json().catch(() => null)
+    return {
+      available: true,
+      user: data?.user || null,
+      state: data?.state ?? null,
+      rev: data?.rev || 0,
+    }
+  } catch {
+    return { available: false, user: null, state: null, rev: 0 }
+  }
+}

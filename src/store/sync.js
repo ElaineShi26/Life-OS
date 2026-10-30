@@ -1,35 +1,53 @@
 import { state, sync } from './state'
 import { normalize } from './model'
-import { fetchMe, fetchRemote, pushRemote, logout as apiLogout } from './cloud'
+import { save } from './storage'
+import { fetchBootstrap, pushRemote, logout as apiLogout } from './cloud'
 
+/**
+ * 启动流程：
+ * 1. 先用 localStorage 里的数据渲染（几乎零延迟），标记 mode='cached'
+ * 2. 一个请求同时拿登录态和云端数据
+ * 3. 拿到后替换数据，mode 转 'cloud'
+ * 备份已经挪到服务端 waitUntil 里，不再占用户的时间
+ */
 export async function bootstrap() {
-  sync.value = { mode: 'loading', user: null, lastSync: 0, error: null }
+  const cached = state.value
+  const hasCached =
+    (cached.goals?.length || 0) +
+      (cached.projects?.length || 0) +
+      (cached.tasks?.length || 0) +
+      (cached.logs?.length || 0) >
+    0
 
-  const me = await fetchMe()
+  sync.value = {
+    mode: hasCached ? 'cached' : 'loading',
+    user: null,
+    lastSync: 0,
+    error: null,
+  }
 
-  // 没有后端：纯本地模式（本地 dev 或静态托管）
-  if (!me.available) {
+  const before = state.value // 记住引用：请求期间用户改过数据就不覆盖
+  const res = await fetchBootstrap()
+
+  // 没有后端：纯本地模式
+  if (!res.available) {
     sync.value = { mode: 'local', user: null, lastSync: 0, error: null }
     return
   }
 
-  if (!me.user) {
+  if (!res.user) {
     sync.value = { mode: 'anon', user: null, lastSync: 0, error: null }
     return
   }
 
-  const remote = await fetchRemote()
-
-  if (!remote.ok) {
-    sync.value = { mode: 'offline', user: me.user, lastSync: 0, error: remote.reason }
-    return
-  }
-
-  if (remote.state && typeof remote.state === 'object') {
-    // 云端有数据：以云端为准
-    state.value = normalize(remote.state)
+  if (res.state && typeof res.state === 'object') {
+    if (state.value === before) {
+      state.value = normalize(res.state)
+      // 落一份到本地：下次打开就能先渲染，不用等网络
+      save(state.value)
+    }
   } else {
-    // 云端是空的：把本地已有的搬上去（首次登录 / 从旧版迁移）
+    // 云端是空的：把本地已有的搬上去
     const local = state.value
     const hasLocal =
       (local.goals?.length || 0) +
@@ -37,15 +55,10 @@ export async function bootstrap() {
         (local.tasks?.length || 0) +
         (local.logs?.length || 0) >
       0
-    if (hasLocal) {
-      await pushRemote(local)
-    }
+    if (hasLocal) await pushRemote(local)
   }
 
-  sync.value = { mode: 'cloud', user: me.user, lastSync: Date.now(), error: null }
-
-  // 静默打一份当日快照（服务端有 20 小时节流，重复调用不会多存）
-  fetch('/api/backup', { method: 'POST', credentials: 'include' }).catch(() => {})
+  sync.value = { mode: 'cloud', user: res.user, lastSync: Date.now(), error: null }
 }
 
 export async function pushNow() {
