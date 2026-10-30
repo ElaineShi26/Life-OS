@@ -28,7 +28,7 @@ const ACTIONS = { goals: GoalsActions, week: WeekActions }
 function openThemePicker() {
   const cur = currentTheme()
   openDialog(
-    <DialogShell title="主题配色" submitLabel="关闭" onSubmit={closeDialog} hideCancel>
+    <DialogShell title="主题配色" submitLabel="关闭" onSubmit={closeDialog} hideCancel hideClose>
       <div class="theme-grid">
         {THEMES.map((t) => (
           <button
