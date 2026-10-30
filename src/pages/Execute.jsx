@@ -3,6 +3,7 @@ import { state, addTask, toggleTask, removeTask, carryOver, addLog } from '../st
 import { todayKey, weekKey, fmtCN, parseKey, pad } from '../lib/date'
 import { openDialog, closeDialog, DialogShell, Field } from '../ui/Dialog'
 import { parseTasks } from '../store/ai'
+import { useVoiceInput } from '../ui/useVoiceInput'
 
 function yesterdayKey() {
   const d = new Date()
@@ -26,6 +27,33 @@ export function Execute() {
   const [parsing, setParsing] = useState(false)
   const [preview, setPreview] = useState(null)
   const [aiErr, setAiErr] = useState('')
+
+  async function runParse(raw) {
+    const t = String(raw ?? aiText).trim()
+    if (!t || parsing) return
+    setParsing(true)
+    setAiErr('')
+    try {
+      const { tasks: found, note } = await parseTasks(t)
+      if (!found.length) {
+        setAiErr(note || '没识别出可执行的事，换个说法试试')
+        setPreview(null)
+      } else {
+        setPreview(found.map((x) => ({ ...x, checked: true })))
+      }
+    } catch (err) {
+      setAiErr(err.message || '解析失败')
+    } finally {
+      setParsing(false)
+    }
+  }
+
+  const voice = useVoiceInput({
+    onText: (t) => {
+      setAiText(t)
+      runParse(t) // 话音直接进拆解，少点一次
+    },
+  })
 
   const tasks = s.tasks.filter((t) => t.date === dk)
   const done = tasks.filter((t) => t.done).length
@@ -90,25 +118,9 @@ export function Execute() {
 
       <div class="ai-bar">
         <form
-          onSubmit={async (e) => {
+          onSubmit={(e) => {
             e.preventDefault()
-            const t = aiText.trim()
-            if (!t || parsing) return
-            setParsing(true)
-            setAiErr('')
-            try {
-              const { tasks: found, note } = await parseTasks(t)
-              if (!found.length) {
-                setAiErr(note || '没识别出可执行的事，换个说法试试')
-                setPreview(null)
-              } else {
-                setPreview(found.map((x) => ({ ...x, checked: true })))
-              }
-            } catch (err) {
-              setAiErr(err.message || '解析失败')
-            } finally {
-              setParsing(false)
-            }
+            runParse()
           }}
         >
           <input
@@ -117,10 +129,20 @@ export function Execute() {
             placeholder="说一句话，自动拆成任务…"
             autocomplete="off"
           />
+          <button
+            class={`mic-btn ${voice.recording ? 'rec' : ''}`}
+            type="button"
+            disabled={voice.transcribing || parsing}
+            onClick={voice.toggle}
+            title="语音输入"
+          >
+            {voice.transcribing ? '识别中…' : voice.recording ? '● 停止' : '口述'}
+          </button>
           <button class="btn btn-primary" type="submit" disabled={parsing}>
             {parsing ? '解析中…' : '拆解'}
           </button>
         </form>
+        {voice.error ? <div class="mic-err">{voice.error}</div> : null}
         <div class="hintline">
           例：明天上午给张三打电话，下午把报告写完，晚上去健身房
         </div>
