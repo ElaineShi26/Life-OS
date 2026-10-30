@@ -6,7 +6,7 @@ export const MOODS = [
   { key: 'full', label: '充实', color: '#2E7D5B' },
   { key: 'tangled', label: '纠结', color: '#7B5EA7' },
   { key: 'anxious', label: '焦虑', color: '#C2723A' },
-  { key: 'tired', label: '疲惫', color: '#8A8071' },
+  { key: 'tired', label: '疲惫', color: '#8a8071' },
   { key: 'sad', label: '难过', color: '#5B7A9D' },
 ]
 

@@ -130,6 +130,9 @@ export function Review() {
                   class={`bar ${m ? '' : 'is-empty'}`}
                   style={m ? `background:${m.color}` : undefined}
                 />
+                <span class="m" style={m ? `color:${m.color}` : undefined}>
+                  {m ? m.label : ''}
+                </span>
                 <span class="d">{['一', '二', '三', '四', '五', '六', '日'][i]}</span>
               </div>
             ))}

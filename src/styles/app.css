@@ -2520,9 +2520,9 @@ dialog::backdrop {
 /* ============ 一周心情色带 ============ */
 .mood-week {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .mood-week-label {
@@ -2531,11 +2531,11 @@ dialog::backdrop {
   text-transform: uppercase;
   color: var(--ink-3);
   flex-shrink: 0;
+  padding-top: 1px;
 }
 
 .mood-week-cells {
   display: flex;
-  gap: 6px;
   flex: 1;
   min-width: 0;
 }
@@ -2544,21 +2544,29 @@ dialog::backdrop {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
   min-width: 0;
 }
 
 .mood-cell .bar {
-  width: 100%;
-  height: 6px;
+  width: 34px;
+  height: 5px;
   border-radius: 3px;
-  background: var(--surface-3);
+  background: var(--line-2);
 }
 
 .mood-cell .bar.is-empty {
-  background: var(--surface-3);
-  opacity: 0.6;
+  background: var(--line-2);
+  opacity: 0.55;
+}
+
+.mood-cell .m {
+  font-size: 10.5px;
+  line-height: 1.3;
+  min-height: 14px;
+  white-space: nowrap;
+  color: var(--ink-3);
 }
 
 .mood-cell .d {
