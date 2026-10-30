@@ -2283,13 +2283,15 @@ dialog::backdrop {
 }
 
 .abandoned summary::before {
-  content: '▸';
-  font-size: 10px;
-  transition: transform 0.15s ease;
+  content: '+';
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 12px;
+  text-align: center;
 }
 
 .abandoned[open] summary::before {
-  transform: rotate(90deg);
+  content: '−';
 }
 
 .abandoned-list {
@@ -2405,4 +2407,49 @@ dialog::backdrop {
   color: var(--ink-3);
   padding: 6px 0 2px;
   text-wrap: pretty;
+}
+
+/* ============ 周切换 / 复盘折叠 ============ */
+.past-note {
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 0 0 16px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.rev-logs summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rev-logs summary::-webkit-details-marker {
+  display: none;
+}
+
+.rev-logs summary::before {
+  content: '+';
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 12px;
+  text-align: center;
+}
+
+.rev-logs[open] summary::before {
+  content: '−';
+}
+
+.rev-logs summary:hover {
+  color: var(--ink-2);
+}
+
+.rev-log-list {
+  padding-bottom: 6px;
 }

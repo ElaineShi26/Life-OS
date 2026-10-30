@@ -1,25 +1,7 @@
 import { useState, useRef } from 'preact/hooks'
-import { state, setStatus, addLog, updateLog, removeLog } from '../store/state'
-import { todayKey, parseKey, fmtShort, WEEKDAY_CN, pad } from '../lib/date'
-import { Spark } from '../ui/Spark'
+import { state, addLog, updateLog, removeLog } from '../store/state'
+import { todayKey, parseKey, fmtShort, WEEKDAY_CN } from '../lib/date'
 import { useVoiceInput } from '../ui/useVoiceInput'
-
-const FIELDS = [
-  { k: 'sleep', label: '睡眠', unit: '小时', ph: '7.5' },
-  { k: 'exercise', label: '运动', unit: '次', ph: '1' },
-  { k: 'focus', label: '专注', unit: '小时', ph: '3' },
-]
-
-function lastDays(n = 14) {
-  const out = []
-  const d = new Date()
-  for (let i = n - 1; i >= 0; i--) {
-    const x = new Date(d)
-    x.setDate(d.getDate() - i)
-    out.push(`${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`)
-  }
-  return out
-}
 
 export function Log() {
   const s = state.value
@@ -35,8 +17,6 @@ export function Log() {
     },
   })
   const dk = todayKey()
-  const today = s.status[dk] || {}
-  const days = lastDays(14)
 
   const byDate = {}
   ;[...s.logs].sort((a, b) => String(b.d).localeCompare(String(a.d))).forEach((l) => {
@@ -47,44 +27,6 @@ export function Log() {
 
   return (
     <>
-      <div class="section-head">
-        <h2>今天的状态</h2>
-        <span class="count">顺手一填，不看也行</span>
-      </div>
-
-      <div class="status-strip">
-        {FIELDS.map((f) => {
-          const series = days
-            .map((d) => s.status[d]?.[f.k])
-            .map((v) => (v == null ? null : Number(v)))
-            .filter((v) => v != null)
-          return (
-            <div class="status-cell" key={f.k}>
-              <div>
-                <div class="k">{f.label}</div>
-                <div class="v">
-                  <input
-                    type="number"
-                    step="any"
-                    inputmode="decimal"
-                    defaultValue={today[f.k] ?? ''}
-                    placeholder={f.ph}
-                    onBlur={(e) => {
-                      const raw = e.currentTarget.value
-                      setStatus(dk, { [f.k]: raw === '' ? null : Number(raw) })
-                    }}
-                  />
-                  <span class="u">{f.unit}</span>
-                </div>
-              </div>
-              <div class="status-spark">
-                <Spark points={series} height={18} />
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
       <form
         class="log-form"
         onSubmit={(e) => {

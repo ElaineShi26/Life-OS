@@ -41,6 +41,15 @@ export function Review() {
   const lastWeek = weekBounds(offset - 1)
   const lastPrios = s.weeks[lastWeek.wk]?.priorities || []
 
+  // 记录按标签汇总，折叠标题里显示
+  const tagCounts = logs.reduce((acc, l) => {
+    if (l.tag) acc[l.tag] = (acc[l.tag] || 0) + 1
+    return acc
+  }, {})
+  const tagSummary = Object.entries(tagCounts)
+    .map(([k, v]) => `${k} ${v}`)
+    .join(' / ')
+
   // 本周有完成任务的「项目」，反推哪些目标这周完全没动
   const touchedProjects = new Set(doneTasks.map((t) => t.projectId).filter(Boolean))
   const staleGoals = s.goals.filter((g) => {
@@ -115,10 +124,12 @@ export function Review() {
         </div>
         {doneTasks.length ? (
           <ul class="fact-sub">
-            {doneTasks.slice(0, 12).map((t) => (
+            {doneTasks.slice(0, 3).map((t) => (
               <li key={t.id}>{t.text}</li>
             ))}
-            {doneTasks.length > 12 ? <li class="more">还有 {doneTasks.length - 12} 项</li> : null}
+            {doneTasks.length > 3 ? (
+              <li class="more">…还有 {doneTasks.length - 3} 项</li>
+            ) : null}
           </ul>
         ) : null}
 
@@ -129,9 +140,12 @@ export function Review() {
               <span class="fact-text">排了但没做完的</span>
             </div>
             <ul class="fact-sub">
-              {tasks.filter((t) => !t.done).slice(0, 12).map((t) => (
+              {tasks.filter((t) => !t.done).slice(0, 3).map((t) => (
                 <li key={t.id}>{t.text}</li>
               ))}
+              {tasks.length - doneTasks.length > 3 ? (
+                <li class="more">…还有 {tasks.length - doneTasks.length - 3} 项</li>
+              ) : null}
             </ul>
           </>
         ) : null}
@@ -172,39 +186,50 @@ export function Review() {
         <div class="section-head">
           <h2>目标进展</h2>
         </div>
-        {s.goals.length ? (
-          s.goals.map((g) => {
+        {(() => {
+          const moved = s.goals.filter((g) =>
+            projectsOf(g, s.projects).some((p) => touchedProjects.has(p.id))
+          )
+          if (!s.goals.length) {
+            return <p style="font-size:13px;color:var(--ink-3)">还没有目标。</p>
+          }
+          if (!moved.length) {
+            return (
+              <p class="fact-empty">
+                这周没有任何目标被推进。没动过的目标已经在上面标出来了。
+              </p>
+            )
+          }
+          return moved.map((g) => {
             const p = goalProgress(g, s.projects, s.tasks)
             return (
               <div class="rev-line" key={g.id}>
                 <span class="d">{pct(p)}%</span>
-                <span class="t">
-                  {g.title}
-                  <span style="color:var(--ink-3)">　{g.status === 'active' ? '进行中' : '已结束'}</span>
-                </span>
+                <span class="t">{g.title}</span>
               </div>
             )
           })
-        ) : (
-          <p style="font-size:13px;color:var(--ink-3)">还没有目标。</p>
-        )}
+        })()}
       </div>
 
       <div class="rev-block">
-        <div class="section-head">
-          <h2>这周做了什么</h2>
-          <span class="count">{logs.length} 条</span>
-        </div>
         {logs.length ? (
-          logs.map((l) => (
-            <div class="rev-line" key={l.id}>
-              <span class="d">{fmtShort(l.d)}</span>
-              <span class="t">
-                {l.text}
-                {l.tag ? <span style="color:var(--ink-3)">　#{l.tag}</span> : null}
-              </span>
+          <details class="rev-logs">
+            <summary>
+              这周的记录（{logs.length} 条{tagSummary ? ` · ${tagSummary}` : ''}）
+            </summary>
+            <div class="rev-log-list">
+              {logs.map((l) => (
+                <div class="rev-line" key={l.id}>
+                  <span class="d">{fmtShort(l.d)}</span>
+                  <span class="t">
+                    {l.text}
+                    {l.tag ? <span style="color:var(--ink-3)">　#{l.tag}</span> : null}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))
+          </details>
         ) : (
           <div class="rev-line muted">
             <span class="d">—</span>

@@ -8,10 +8,20 @@ import {
   removeTask,
   updateTask,
 } from '../store/state'
+import { useState, useEffect } from 'preact/hooks'
 import { weekKey, weekDays, todayKey, pad, weekRange } from '../lib/date'
 import { openDialog, closeDialog, DialogShell, Field } from '../ui/Dialog'
+import { weekOffset } from '../store/ui'
 
 const WD = ['一', '二', '三', '四', '五', '六', '日']
+
+/** 相对今天偏移 n 周的日期 */
+function weekBase(n) {
+  const d = new Date()
+  d.setDate(d.getDate() + n * 7)
+  return d
+}
+const weekKeyAt = (n) => weekKey(weekBase(n))
 const keyOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 function goalOptions() {
@@ -74,27 +84,63 @@ function openAddTask(dateKey, label) {
 }
 
 export function WeekActions() {
-  const wk = weekKey()
+  const at = weekOffset.value
   return (
-    <button class="btn btn-primary" type="button" onClick={() => openAddPriority(wk)}>
-      加本周重点
+    <button
+      class="btn btn-primary"
+      type="button"
+      onClick={() => openAddPriority(weekKeyAt(at))}
+    >
+      加个重点
     </button>
   )
 }
 
 export function Week() {
   const s = state.value
-  const wk = weekKey()
+  const offset = weekOffset.value
+  const base = weekBase(offset)
+  const wk = weekKey(base)
   const w = s.weeks[wk] || { priorities: [], note: '' }
-  const days = weekDays()
+  const days = weekDays(base)
   const today = todayKey()
+
+  // 离开这一页再回来，默认回到本周
+  useEffect(() => {
+    return () => {
+      weekOffset.value = 0
+    }
+  }, [])
 
   const goalName = (id) => s.goals.find((g) => g.id === id)?.title || ''
 
   return (
     <>
+      <div class="rev-nav">
+        <button class="step" type="button" onClick={() => (weekOffset.value = offset - 1)}>
+          ‹
+        </button>
+        <span class="wk">{wk}</span>
+        <span class="rng">{weekRange(base)}</span>
+        <button class="step" type="button" onClick={() => (weekOffset.value = offset + 1)}>
+          ›
+        </button>
+        {offset !== 0 ? (
+          <button class="btn btn-ghost" type="button" onClick={() => (weekOffset.value = 0)}>
+            回本周
+          </button>
+        ) : null}
+        <span class="now">{offset === 0 ? '本周' : offset < 0 ? '过去' : '未来'}</span>
+      </div>
+
+      {offset < 0 ? (
+        <p class="past-note">
+          这是过去的一周。补记没问题，但别改当初的重点——那一版已经进复盘了。
+        </p>
+      ) : null}
+
       <div class="section-head">
-        <h2>本周重点</h2>
+        <h2>{offset === 0 ? '本周重点' : '这一周的重点'}</h2>
         <span class="count">
           {w.priorities.filter((p) => p.done).length}/{w.priorities.length} 完成
         </span>
@@ -131,8 +177,7 @@ export function Week() {
       </div>
 
       <div class="section-head">
-        <h2>{weekRange()}</h2>
-        <span class="count">{wk}</span>
+        <h2>七天</h2>
       </div>
 
       <div class="week-grid">
