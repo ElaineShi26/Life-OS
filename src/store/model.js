@@ -36,6 +36,7 @@ export function blankState() {
     logs: [],
     status: {}, // { '2026-10-29': { sleep, exercise, focus } }
     reviews: {}, // { '2026-W44': { note, at } }
+    quotes: [], // { id, text, source, area: 'relation'|'career'|'life', createdAt }
     meta: { createdAt: now, updatedAt: now },
   }
 }
@@ -116,6 +117,7 @@ export function normalize(s) {
   if (!Array.isArray(out.projects)) out.projects = []
   if (!Array.isArray(out.tasks)) out.tasks = []
   if (!Array.isArray(out.decisions)) out.decisions = []
+  if (!Array.isArray(out.quotes)) out.quotes = []
   if (!Array.isArray(out.logs)) out.logs = []
   if (typeof out.weeks !== 'object' || !out.weeks) out.weeks = {}
   if (typeof out.status !== 'object' || !out.status) out.status = {}

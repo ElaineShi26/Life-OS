@@ -25,7 +25,11 @@ async function req(path, options = {}) {
 export async function fetchMe() {
   try {
     const res = await fetch(BASE + '/auth/me', { credentials: 'include' })
-    if (res.status === 404) return { available: false, user: null }
+    const ct = res.headers.get('content-type') || ''
+    // 纯静态托管时 /api/* 会落到 index.html，返回 HTML 而不是 JSON
+    if (res.status === 404 || !ct.includes('application/json')) {
+      return { available: false, user: null }
+    }
     if (!res.ok) return { available: true, user: null }
     const data = await res.json().catch(() => null)
     return { available: true, user: data?.user || null }

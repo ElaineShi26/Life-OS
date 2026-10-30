@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'preact/hooks'
 import { state, sync, replaceAll } from './store/state'
 import { todayKey, weekKey, weekRange, fmtCN } from './lib/date'
-import { Dialog } from './ui/Dialog'
+import { Dialog, openDialog, closeDialog, DialogShell } from './ui/Dialog'
+import { THEMES, currentTheme, applyTheme } from './store/theme'
 import { exportJSON, importJSON } from './store/storage'
 import { bootstrap, signOut } from './store/sync'
 import { loginWithGitHub } from './store/cloud'
@@ -10,6 +11,7 @@ import { Week, WeekActions } from './pages/Week'
 import { Execute } from './pages/Execute'
 import { Log } from './pages/Log'
 import { Review } from './pages/Review'
+import { Quotes } from './pages/Quotes'
 
 export const PAGES = [
   { id: 'goals', n: '01', t: '目标', sub: '一年要什么：目标 · 项目 · 里程碑 · 关键决策' },
@@ -17,10 +19,38 @@ export const PAGES = [
   { id: 'execute', n: '03', t: '执行', sub: '今天要落地的动作' },
   { id: 'log', n: '04', t: '记录', sub: '发生了什么，以及今天的身体状态' },
   { id: 'review', n: '05', t: '复盘', sub: '把这一周变成判断：哪条假设被证据推翻了' },
+  { id: 'quotes', n: '06', t: '箴言', sub: '记下值得反复看的句子，按关系、事业、人生分开' },
 ]
 
-const VIEWS = { goals: Goals, week: Week, execute: Execute, log: Log, review: Review }
+const VIEWS = { goals: Goals, week: Week, execute: Execute, log: Log, review: Review, quotes: Quotes }
 const ACTIONS = { goals: GoalsActions, week: WeekActions }
+
+function openThemePicker() {
+  const cur = currentTheme()
+  openDialog(
+    <DialogShell title="主题配色" submitLabel="关闭" onSubmit={closeDialog} hideCancel>
+      <div class="theme-grid">
+        {THEMES.map((t) => (
+          <button
+            type="button"
+            key={t.id}
+            class="theme-swatch"
+            onClick={() => {
+              applyTheme(t.id)
+              closeDialog()
+            }}
+          >
+            <span class="sw" style={`background:${t.color}`} />
+            <span class="nm">{t.name}</span>
+            {cur === t.id ? (
+              <span style="margin-left:auto;font-size:11px;color:var(--accent)">当前</span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+    </DialogShell>
+  )
+}
 
 function currentPage() {
   const h = typeof location !== 'undefined' ? location.hash.replace(/^#/, '') : ''
@@ -167,7 +197,16 @@ export function App() {
             <h1>{meta.t}</h1>
             <p class="page-sub">{page === 'execute' ? `${fmtCN()} · ${meta.sub}` : meta.sub}</p>
           </div>
-          <div class="topbar-actions">{Actions ? <Actions /> : null}</div>
+          <div class="topbar-actions">
+            {Actions ? <Actions /> : null}
+            <button
+              class="theme-dot"
+              type="button"
+              title="主题配色"
+              aria-label="主题配色"
+              onClick={openThemePicker}
+            />
+          </div>
         </header>
 
         <View page={page} />

@@ -1,4 +1,5 @@
-import { state, setStatus, addLog, removeLog } from '../store/state'
+import { useState } from 'preact/hooks'
+import { state, setStatus, addLog, updateLog, removeLog } from '../store/state'
 import { todayKey, parseKey, fmtShort, WEEKDAY_CN, pad } from '../lib/date'
 import { Spark } from '../ui/Spark'
 
@@ -21,6 +22,7 @@ function lastDays(n = 14) {
 
 export function Log() {
   const s = state.value
+  const [editing, setEditing] = useState(null)
   const dk = todayKey()
   const today = s.status[dk] || {}
   const days = lastDays(14)
@@ -101,22 +103,75 @@ export function Log() {
                 <span class="wd">{WEEKDAY_CN[parseKey(d).getDay()]}</span>
               </div>
               <div class="log-items">
-                {byDate[d].map((l) => (
-                  <div class="log-item" key={l.id}>
-                    <span class="dot" />
-                    <span class="body">{l.text}</span>
-                    {l.tag ? <span class="tag">#{l.tag}</span> : null}
-                    <button
-                      class="btn btn-ghost"
-                      type="button"
-                      onClick={() => {
-                        if (confirm('删除这条记录？')) removeLog(l.id)
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                {byDate[d].map((l) =>
+                  editing === l.id ? (
+                    <div class="log-editor" key={l.id}>
+                      <textarea
+                        defaultValue={l.text}
+                        autoFocus
+                        rows={3}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') setEditing(null)
+                          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                            const v = e.currentTarget.value.trim()
+                            if (v) updateLog(l.id, { text: v })
+                            setEditing(null)
+                          }
+                        }}
+                      />
+                      <div class="log-editor-foot">
+                        <input
+                          defaultValue={l.tag || ''}
+                          placeholder="标签"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.currentTarget.blur()
+                          }}
+                        />
+                        <button class="btn" type="button" onClick={() => setEditing(null)}>
+                          取消
+                        </button>
+                        <button
+                          class="btn btn-primary"
+                          type="button"
+                          onClick={(e) => {
+                            const box = e.currentTarget.closest('.log-editor')
+                            const text = box.querySelector('textarea').value.trim()
+                            const tag = box.querySelector('input').value.trim().replace(/^#/, '')
+                            if (text) updateLog(l.id, { text, tag })
+                            setEditing(null)
+                          }}
+                        >
+                          保存
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div class="log-item" key={l.id}>
+                      <span class="dot" />
+                      <span class="body" onClick={() => setEditing(l.id)} title="点击编辑">
+                        {l.text}
+                      </span>
+                      {l.tag ? <span class="tag">#{l.tag}</span> : null}
+                      <button
+                        class="btn btn-ghost"
+                        type="button"
+                        onClick={() => setEditing(l.id)}
+                        title="编辑"
+                      >
+                        改
+                      </button>
+                      <button
+                        class="btn btn-ghost"
+                        type="button"
+                        onClick={() => {
+                          if (confirm('删除这条记录？')) removeLog(l.id)
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           ))}

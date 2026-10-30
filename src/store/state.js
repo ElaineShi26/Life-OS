@@ -265,8 +265,35 @@ export function addLog(patch) {
   commit((s) => ({ ...s, logs: [...s.logs, newLog(patch)] }))
 }
 
+export function updateLog(id, patch) {
+  commit((s) => ({
+    ...s,
+    logs: s.logs.map((l) => (l.id === id ? { ...l, ...patch } : l)),
+  }))
+}
+
 export function removeLog(id) {
   commit((s) => ({ ...s, logs: s.logs.filter((l) => l.id !== id) }))
+}
+
+/* ----------------------------- 箴言 ----------------------------- */
+
+export function addQuote(patch) {
+  commit((s) => ({
+    ...s,
+    quotes: [...(s.quotes || []), { id: Math.random().toString(36).slice(2, 9), createdAt: todayKey(), ...patch }],
+  }))
+}
+
+export function updateQuote(id, patch) {
+  commit((s) => ({
+    ...s,
+    quotes: (s.quotes || []).map((q) => (q.id === id ? { ...q, ...patch } : q)),
+  }))
+}
+
+export function removeQuote(id) {
+  commit((s) => ({ ...s, quotes: (s.quotes || []).filter((q) => q.id !== id) }))
 }
 
 export function setStatus(d, patch) {

@@ -46,7 +46,7 @@ export function Dialog() {
 }
 
 /** 弹窗外壳：标题 + 内容 + 按钮 */
-export function DialogShell({ title, children, onSubmit, submitLabel = '保存', onDelete }) {
+export function DialogShell({ title, children, onSubmit, submitLabel = '保存', onDelete, hideCancel }) {
   return (
     <form
       onSubmit={(e) => {
@@ -68,9 +68,11 @@ export function DialogShell({ title, children, onSubmit, submitLabel = '保存',
             删除
           </button>
         ) : null}
-        <button type="button" class="btn" onClick={closeDialog}>
-          取消
-        </button>
+        {hideCancel ? null : (
+          <button type="button" class="btn" onClick={closeDialog}>
+            取消
+          </button>
+        )}
         <button type="submit" class="btn btn-primary">
           {submitLabel}
         </button>

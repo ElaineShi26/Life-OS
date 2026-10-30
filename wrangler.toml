@@ -9,6 +9,10 @@ binding = "DB"
 database_name = "life-os"
 database_id = "b90139e1-1269-4699-a326-9a75b294aebf"
 
+# Cloudflare Workers AI —— 一句话拆任务
+[ai]
+binding = "AI"
+
 [vars]
 # 这两个用 wrangler secret put 配置，不写在文件里
 # GITHUB_CLIENT_ID
