@@ -5,7 +5,6 @@ const KEY = 'lifeos.theme'
 export const THEMES = [
   { id: 'moss', name: '苔绿', color: '#2E5E52', bg: '#F7F6F3' },
   { id: 'ocean', name: '蓝白', color: '#2F5D8A', bg: '#F5F8FC' },
-  { id: 'violet', name: '紫', color: '#5B4B9E', bg: '#F7F6FB' },
   { id: 'lilac', name: '淡紫', color: '#7C6BA8', bg: '#FAF8FD' },
   { id: 'rose', name: '淡粉', color: '#A45C74', bg: '#FCF7F8' },
   { id: 'shacha', name: '沙茶', color: '#B26B36', bg: '#FBF3E9' },

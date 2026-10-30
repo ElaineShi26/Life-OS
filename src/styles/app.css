@@ -1779,30 +1779,6 @@ dialog::backdrop {
   }
 }
 
-/* 主题：violet */
-[data-theme="violet"] {
-  --accent: #5B4B9E;
-  --accent-soft: #ECE9F6;
-  --bg: #F7F6FB;
-  --surface-2: #F0EEF8;
-  --surface-3: #E7E4F2;
-  --line: #E2DEF0;
-  --line-2: #CFC9E4;
-}
-
-@media (prefers-color-scheme: dark) {
-  [data-theme="violet"] {
-    --accent: #A79AE0;
-    --accent-soft: #1D1A2C;
-    --bg: #100F16;
-    --surface: #17161F;
-    --surface-2: #1D1C27;
-    --surface-3: #35323F;
-    --line: #26242F;
-    --line-2: #35323F;
-  }
-}
-
 /* 主题：lilac */
 [data-theme="lilac"] {
   --accent: #7C6BA8;
