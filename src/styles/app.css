@@ -2453,3 +2453,66 @@ dialog::backdrop {
 .rev-log-list {
   padding-bottom: 6px;
 }
+
+/* ============ 今日心情 ============ */
+.mood-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.mood-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.mood-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mood {
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  transition: all 0.12s ease;
+}
+
+.mood:hover {
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+
+.mood.on {
+  border-color: var(--mc);
+  color: var(--mc);
+  background: color-mix(in srgb, var(--mc) 12%, var(--surface));
+  font-weight: 500;
+}
+
+.mood-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 5px;
+  vertical-align: 1px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .mood-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

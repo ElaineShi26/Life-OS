@@ -296,6 +296,15 @@ export function removeQuote(id) {
   commit((s) => ({ ...s, quotes: (s.quotes || []).filter((q) => q.id !== id) }))
 }
 
+export function setMood(d, key) {
+  commit((st) => {
+    const moods = { ...(st.moods || {}) }
+    if (!key || moods[d] === key) delete moods[d]
+    else moods[d] = key
+    return { ...st, moods }
+  })
+}
+
 export function setStatus(d, patch) {
   commit((s) => ({
     ...s,

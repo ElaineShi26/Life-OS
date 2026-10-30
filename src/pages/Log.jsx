@@ -1,7 +1,8 @@
 import { useState, useRef } from 'preact/hooks'
-import { state, addLog, updateLog, removeLog } from '../store/state'
+import { state, addLog, updateLog, removeLog, setMood } from '../store/state'
 import { todayKey, parseKey, fmtShort, WEEKDAY_CN } from '../lib/date'
 import { useVoiceInput } from '../ui/useVoiceInput'
+import { MOODS, moodOf } from '../lib/moods'
 
 export function Log() {
   const s = state.value
@@ -27,6 +28,26 @@ export function Log() {
 
   return (
     <>
+      <div class="mood-bar">
+        <span class="mood-label">今天的心情</span>
+        <div class="mood-list">
+          {MOODS.map((m) => {
+            const on = (s.moods || {})[dk] === m.key
+            return (
+              <button
+                type="button"
+                key={m.key}
+                class={`mood ${on ? 'on' : ''}`}
+                style={on ? `--mc:${m.color}` : undefined}
+                onClick={() => setMood(dk, m.key)}
+              >
+                {m.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <form
         class="log-form"
         onSubmit={(e) => {
@@ -69,6 +90,12 @@ export function Log() {
               <div class="log-date">
                 {fmtShort(d)}
                 <span class="wd">{WEEKDAY_CN[parseKey(d).getDay()]}</span>
+                {(() => {
+                  const mm = moodOf((s.moods || {})[d])
+                  return mm ? (
+                    <span class="mood-dot" style={`background:${mm.color}`} title={mm.label} />
+                  ) : null
+                })()}
               </div>
               <div class="log-items">
                 {byDate[d].map((l) =>
