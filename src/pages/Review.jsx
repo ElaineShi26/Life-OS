@@ -11,6 +11,7 @@ import {
   pad,
 } from '../lib/date'
 import { goalProgress, projectsOf } from '../store/progress'
+import { moodOf } from '../lib/moods'
 
 function keyOf(d) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -37,6 +38,14 @@ export function Review() {
   const decisions = s.decisions.filter((d) => inRange(d.date))
   const prios = s.weeks[wk]?.priorities || []
   const review = s.reviews[wk]
+
+  // 本周七天（用于心情色带）
+  const weekDayKeys = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mon)
+    d.setDate(mon.getDate() + i)
+    return keyOf(d)
+  })
+  const weekMoods = weekDayKeys.map((k) => moodOf((s.moods || {})[k]))
 
   const lastWeek = weekBounds(offset - 1)
   const lastPrios = s.weeks[lastWeek.wk]?.priorities || []
@@ -105,6 +114,29 @@ export function Review() {
           <div class="n">{decisions.length}</div>
           <div class="k">决策</div>
         </div>
+      </div>
+
+      <div class="mood-week">
+        <span class="mood-week-label">这周的心情</span>
+        {weekMoods.some(Boolean) ? (
+          <div class="mood-week-cells">
+            {weekMoods.map((m, i) => (
+              <div
+                class="mood-cell"
+                key={weekDayKeys[i]}
+                title={`${weekDayKeys[i]} ${m ? m.label : '没记'}`}
+              >
+                <span
+                  class={`bar ${m ? '' : 'is-empty'}`}
+                  style={m ? `background:${m.color}` : undefined}
+                />
+                <span class="d">{['一', '二', '三', '四', '五', '六', '日'][i]}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span class="mood-week-empty">这周还没记过心情</span>
+        )}
       </div>
 
       <div class="rev-block">

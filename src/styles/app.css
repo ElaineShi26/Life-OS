@@ -2516,3 +2516,58 @@ dialog::backdrop {
     gap: 8px;
   }
 }
+
+/* ============ 一周心情色带 ============ */
+.mood-week {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.mood-week-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+
+.mood-week-cells {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mood-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.mood-cell .bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-3);
+}
+
+.mood-cell .bar.is-empty {
+  background: var(--surface-3);
+  opacity: 0.6;
+}
+
+.mood-cell .d {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+.mood-week-empty {
+  font-size: 12px;
+  color: var(--ink-3);
+}
